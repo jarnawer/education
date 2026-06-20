@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chunk Design Reference</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #607080;
+      --paper: #fbfaf7;
+      --panel: #ffffff;
+      --line: #d9e0e7;
+      --blue: #2457c5;
+      --teal: #0f766e;
+      --amber: #9a5b00;
+      --warm: #f7efe3;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.52 Georgia, "Times New Roman", serif; }
+    main { max-width: 1080px; margin: 0 auto; padding: 48px 24px 72px; }
+    header { border-bottom: 2px solid var(--ink); margin-bottom: 28px; padding-bottom: 22px; }
+    h1, h2, h3 { margin: 0; line-height: 1.12; }
+    h1 { font-size: clamp(2.2rem, 6vw, 4.4rem); letter-spacing: -0.045em; }
+    h2 { font-size: 1.45rem; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 22px; }
+    h3 { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; }
+    p { margin: 0.75rem 0; }
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .subtitle { max-width: 760px; color: var(--muted); font-size: 1.08rem; }
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: 0 12px 30px rgba(23, 33, 43, 0.06); }
+    .card:nth-child(1) { border-top: 5px solid var(--teal); }
+    .card:nth-child(2) { border-top: 5px solid var(--blue); }
+    .card:nth-child(3) { border-top: 5px solid var(--amber); }
+    table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 0.96rem; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { font-family: ui-sans-serif, system-ui, sans-serif; color: var(--muted); background: #f1f4f7; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    .flow { background: #101820; color: #f7fbff; border-radius: 18px; padding: 18px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; white-space: pre-wrap; }
+    .callout { border-left: 4px solid var(--blue); background: #eef4ff; padding: 14px 16px; margin: 20px 0; }
+    .warning { border-left: 4px solid var(--amber); background: #fff7e8; padding: 14px 16px; margin: 20px 0; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #eef1f4; padding: 0.08rem 0.25rem; border-radius: 4px; }
+    footer { margin-top: 42px; color: var(--muted); font-size: 0.92rem; }
+    @media (max-width: 840px) {
+      main { padding: 28px 16px 56px; }
+      .cards { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: white; }
+      main { padding: 0; }
+      .card, table, .flow { box-shadow: none; break-inside: avoid; }
+      a { color: black; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Chunk Design Reference</h1>
+      <p class="subtitle">A compact decision sheet for choosing the retrieval grain in baseline RAG. Use it before tuning prompts, top-k, rerankers, or GraphRAG.</p>
+    </header>
+
+    <section class="cards" aria-label="Chunk design knobs">
+      <article class="card">
+        <h3>Size</h3>
+        <p><strong>Controls precision.</strong> Smaller chunks reduce noise, but can lose the surrounding idea. Larger chunks preserve context, but can bury the answer.</p>
+      </article>
+      <article class="card">
+        <h3>Overlap</h3>
+        <p><strong>Protects boundaries.</strong> Overlap helps when answers straddle chunk edges, but increases duplicate storage, embedding cost, and repeated context.</p>
+      </article>
+      <article class="card">
+        <h3>Metadata</h3>
+        <p><strong>Controls routing.</strong> Metadata such as source, title path, date, permission, customer, product, and jurisdiction lets retrieval filter before ranking.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>Chunk Grain Algorithm</h2>
+      <div class="flow">1. Name the question shape: fact, clause, procedure, row lookup, comparison, or summary.
+2. Pick the smallest semantic unit that can answer that shape.
+3. Attach metadata needed for filters, citations, permissions, freshness, and debugging.
+4. Add overlap only where boundary splits cause misses.
+5. Test retrieval with representative questions before changing prompts.</div>
+      <p class="callout"><strong>Rule:</strong> a chunk is the modeled grain of retrieval, not a fixed number of characters.</p>
+    </section>
+
+    <section>
+      <h2>Common Grains</h2>
+      <table>
+        <thead>
+          <tr><th>Corpus Type</th><th>Likely First Grain</th><th>Metadata To Preserve</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Policy or legal document</td><td>Section, clause, or numbered subsection</td><td>Document title, section path, effective date, jurisdiction, version</td></tr>
+          <tr><td>FAQ or support article</td><td>Question plus answer block</td><td>Product, audience, article ID, last updated, language</td></tr>
+          <tr><td>Ticket or incident record</td><td>Single ticket summary or event segment</td><td>Customer, severity, product, date, status, resolver group</td></tr>
+          <tr><td>Table or CSV export</td><td>Row or row group with column names</td><td>Primary key, table name, date partition, owner, source system</td></tr>
+          <tr><td>Codebase documentation</td><td>Function, class, module section, or markdown heading block</td><td>File path, symbol name, package, version, heading path</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Symptom Map</h2>
+      <table>
+        <thead>
+          <tr><th>Retrieval Symptom</th><th>First Chunking Move</th><th>Watch Out For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Correct chunk retrieved, but answer is buried in noise</td><td>Split smaller or use better structural boundaries</td><td>Do not split away definitions, headings, or units of meaning.</td></tr>
+          <tr><td>Correct document retrieved, wrong passage selected</td><td>Align chunks to semantic sections, not arbitrary windows</td><td>Overlapping bad boundaries can preserve the bad boundary.</td></tr>
+          <tr><td>Answer straddles two neighboring chunks</td><td>Add overlap or preserve parent context</td><td>Too much overlap can crowd top-k with near-duplicates.</td></tr>
+          <tr><td>Chunks look relevant but ignore customer, date, or jurisdiction</td><td>Add metadata and filters</td><td>Semantic similarity cannot enforce business constraints by itself.</td></tr>
+          <tr><td>Good retrieval is too expensive</td><td>Reduce duplication, use stable IDs, and persist embeddings</td><td>Do not trade away recall without measuring it.</td></tr>
+        </tbody>
+      </table>
+      <p class="warning"><strong>Senior habit:</strong> when chunking changes, re-run retrieval evaluation. A cleaner-looking chunking scheme can silently lower recall.</p>
+    </section>
+
+    <footer>
+      Related lesson: <a href="../lessons/0003-chunk-grain-before-embeddings.html">Chunk Grain Before Embeddings</a>. Previous reference: <a href="0002-baseline-rag-pipeline.html">Baseline RAG Pipeline Reference</a>. Primary sources: <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/loading/">LlamaIndex Loading Data</a> and <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/indexing/">LlamaIndex Indexing</a>.
+    </footer>
+  </main>
+</body>
+</html>

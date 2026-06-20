@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 0001: Choose the Right Databricks Semantic Object</title>
+  <style>
+    :root {
+      --ink: #171412;
+      --muted: #675f58;
+      --line: #dfd7cf;
+      --paper: #fffaf2;
+      --white: #fffefe;
+      --soft: #f4ede1;
+      --accent: #e45a35;
+      --good: #18794e;
+      --bad: #b42318;
+      --shadow: 0 18px 50px rgba(55, 42, 31, .10);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(228, 90, 53, .12), transparent 34rem),
+        var(--paper);
+      color: var(--ink);
+      font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+      line-height: 1.58;
+    }
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 48px 22px 72px;
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 24px;
+      align-items: end;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(255, 254, 254, .82);
+      box-shadow: var(--shadow);
+    }
+    h1 {
+      font-size: clamp(36px, 7vw, 72px);
+      line-height: .92;
+      letter-spacing: -0.055em;
+      margin: 10px 0 14px;
+    }
+    h2 {
+      font-size: 26px;
+      margin: 38px 0 12px;
+      letter-spacing: -0.02em;
+    }
+    h3 { margin: 0 0 8px; }
+    p { max-width: 72ch; }
+    a { color: #8c2f1b; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    code {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-size: .9em;
+    }
+    .eyebrow {
+      color: #8c2f1b;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .lede {
+      color: var(--muted);
+      font-size: 20px;
+      margin: 0;
+    }
+    .mission {
+      border-left: 4px solid var(--accent);
+      padding: 12px 0 12px 18px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .panel {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 10px 28px rgba(55, 42, 31, .06);
+      margin: 16px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 16px 0;
+    }
+    .mini {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+    }
+    .mini strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+    .source {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .takeaway {
+      font-size: 22px;
+      line-height: 1.35;
+      padding: 24px;
+      border-radius: 18px;
+      background: #211a16;
+      color: #fffaf2;
+      margin: 24px 0;
+    }
+    .quiz {
+      display: grid;
+      gap: 12px;
+    }
+    .item {
+      display: grid;
+      grid-template-columns: 1fr 210px;
+      gap: 12px;
+      align-items: center;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    select, button {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      font: 600 15px/1.2 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 10px 12px;
+    }
+    button {
+      cursor: pointer;
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      margin-top: 12px;
+    }
+    .feedback {
+      min-height: 28px;
+      margin-top: 12px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 700;
+    }
+    .correct { color: var(--good); }
+    .wrong { color: var(--bad); }
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 12px 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+    }
+    .answers div {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .next {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    pre {
+      overflow-x: auto;
+      background: #211a16;
+      color: #fffaf2;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 14px;
+    }
+    @media (max-width: 780px) {
+      header, .grid, .next, .item, .answers { grid-template-columns: 1fr; }
+      main { padding: 24px 16px 48px; }
+      header { padding: 22px; }
+    }
+    @media print {
+      body { background: white; }
+      header, .panel, .mini { box-shadow: none; }
+      button, select { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <div class="eyebrow">Lesson 0001 · 12 minutes</div>
+        <h1>Choose the Right Semantic Object</h1>
+        <p class="lede">A practical first mental model for Metric Views, Materialized Views, Databricks dashboards, dashboard datasets, and standard views.</p>
+      </div>
+      <div class="mission">
+        <strong>Mission tie-in:</strong> as a Databricks Data Engineer, your leverage is knowing where business logic, physical optimization, and consumption logic should live. This lesson gives you the first design filter.
+      </div>
+    </header>
+
+    <section id="target-skill">
+      <h2>Target Skill</h2>
+      <p>Given a reporting or analytics requirement, choose the Databricks object that should own the requirement.</p>
+      <p class="source">Primary source to read after this lesson: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/">Databricks docs: Unity Catalog metric views</a>. Follow-up source: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/tpch-example">Metric View tutorial with joins</a>.</p>
+    </section>
+
+    <section id="four-jobs">
+      <h2>The Four Jobs</h2>
+      <div class="grid">
+        <article class="mini">
+          <strong>Metric View</strong>
+          <p>Owns reusable business semantics: fields for grouping/filtering and measures for aggregations. Databricks describes Metric Views as the core implementation of Unity Catalog business semantics. Queries evaluate measures with <code>MEASURE()</code>. <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/">Source</a></p>
+        </article>
+        <article class="mini">
+          <strong>Materialized View</strong>
+          <p>Owns physical precomputation: it stores query results, refreshes from source changes or schedules, and can reduce latency and processing cost. Standalone MVs are backed by serverless Lakeflow pipelines. <a href="https://docs.databricks.com/aws/en/ldp/dbsql/materialized">Source</a></p>
+        </article>
+        <article class="mini">
+          <strong>Dashboard</strong>
+          <p>Owns consumption: visualizations, filters, publishing, sharing, scheduling, embedding, and optional Genie exploration. Dashboards define datasets from tables, views, Metric Views, or SQL queries. <a href="https://docs.databricks.com/aws/en/dashboards/">Source</a></p>
+        </article>
+        <article class="mini">
+          <strong>Standard View</strong>
+          <p>Owns lightweight virtual SQL reuse: no physical data is stored, and metadata changes happen through view DDL. It is not a semantic metric layer and does not precompute results. <a href="https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-syntax-ddl-create-view">Source</a></p>
+        </article>
+      </div>
+    </section>
+
+    <section id="key-distinction">
+      <h2>Key Distinction</h2>
+      <div class="takeaway">
+        Do not ask “Which object can technically produce the chart?” Ask “Which object should own the responsibility?” Business meaning belongs in Metric Views. Performance belongs in Materialized Views. Presentation belongs in dashboards.
+      </div>
+      <p>Dashboard-local calculations are convenient, but they are a weak place for canonical KPI definitions because they are scoped to one dashboard. Databricks dashboards can export datasets as Metric Views or Materialized Views, which is a hint: local work can be promoted once it becomes reusable. <a href="https://docs.databricks.com/aws/en/dashboards/manage/data-modeling/datasets#generate-views-from-datasets">Source</a></p>
+    </section>
+
+    <section id="combined-pattern">
+      <h2>The Production Pattern</h2>
+      <div class="panel">
+        <p>A mature Databricks semantic/BI stack often combines the objects instead of choosing only one:</p>
+        <pre><code>Delta tables
+  -> Metric View for governed fields and measures
+  -> optional Materialized View or Metric View materialization for latency
+  -> AI/BI dashboard for stakeholder consumption
+  -> optional Genie for natural-language exploration</code></pre>
+        <p>Metric View materialization is a special case: it accelerates Metric View queries using materialized views and optimizer query rewriting, but Databricks currently marks this feature experimental. Treat it as an advanced performance topic after you can model Metric Views correctly. <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/materialization">Source</a></p>
+      </div>
+    </section>
+
+    <section id="practice">
+      <h2>Retrieval Practice</h2>
+      <p>Choose the object that should own each requirement. Use only the letter labels first. This avoids answer-length clues and forces retrieval.</p>
+      <div class="answers" aria-label="Answer bank">
+        <div><strong>A</strong>: Metric View</div>
+        <div><strong>B</strong>: Materialized View</div>
+        <div><strong>C</strong>: Dashboard</div>
+        <div><strong>D</strong>: Standard View</div>
+      </div>
+      <div class="quiz" id="quiz">
+        <div class="item">
+          <div>Sales leadership wants “net revenue” to mean the same thing in dashboards, Genie, alerts, and SQL.</div>
+          <select data-answer="A" aria-label="Question 1 answer">
+            <option value="">Choose</option><option>A</option><option>B</option><option>C</option><option>D</option>
+          </select>
+        </div>
+        <div class="item">
+          <div>A dashboard query joins large tables and runs slowly, but the KPI definition is already agreed.</div>
+          <select data-answer="B" aria-label="Question 2 answer">
+            <option value="">Choose</option><option>A</option><option>B</option><option>C</option><option>D</option>
+          </select>
+        </div>
+        <div class="item">
+          <div>Stakeholders need filters, charts, scheduled updates, and a shareable published artifact.</div>
+          <select data-answer="C" aria-label="Question 3 answer">
+            <option value="">Choose</option><option>A</option><option>B</option><option>C</option><option>D</option>
+          </select>
+        </div>
+        <div class="item">
+          <div>You need to hide a few technical columns and give analysts a reusable SQL shape, with no new KPI semantics.</div>
+          <select data-answer="D" aria-label="Question 4 answer">
+            <option value="">Choose</option><option>A</option><option>B</option><option>C</option><option>D</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" onclick="checkQuiz()">Check answers</button>
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+    </section>
+
+    <section id="reference">
+      <h2>Reference</h2>
+      <p>Keep this nearby while designing: <a href="../reference/0001-semantic-object-decision-sheet.html">Semantic Object Decision Sheet</a>.</p>
+    </section>
+
+    <section id="next-session">
+      <h2>Next Session</h2>
+      <div class="next">
+        <article class="mini">
+          <strong>Best next lesson</strong>
+          <p>Build a minimal Metric View from TPC-H orders: one source, two fields, three measures, and two queries using <code>MEASURE()</code>.</p>
+        </article>
+        <article class="mini">
+          <strong>Ask your agent</strong>
+          <p>If any distinction feels fuzzy, ask follow-up questions. The fastest way to learn this domain is to bring a real reporting requirement and classify where each responsibility belongs.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function checkQuiz() {
+      const selects = Array.from(document.querySelectorAll('select[data-answer]'));
+      let correct = 0;
+      let missing = 0;
+      selects.forEach((select) => {
+        select.classList.remove('correct', 'wrong');
+        if (!select.value) {
+          missing += 1;
+          return;
+        }
+        if (select.value === select.dataset.answer) {
+          correct += 1;
+          select.classList.add('correct');
+        } else {
+          select.classList.add('wrong');
+        }
+      });
+      const feedback = document.getElementById('feedback');
+      if (missing > 0) {
+        feedback.className = 'feedback wrong';
+        feedback.textContent = 'Answer every scenario first. Missing: ' + missing + '.';
+        return;
+      }
+      if (correct === selects.length) {
+        feedback.className = 'feedback correct';
+        feedback.textContent = '4/4. You have the first design filter: semantics, performance, presentation, or simple SQL reuse.';
+      } else {
+        feedback.className = 'feedback wrong';
+        feedback.textContent = correct + '/4. Recheck who should own the responsibility, not which object could technically produce output.';
+      }
+    }
+  </script>
+</body>
+</html>

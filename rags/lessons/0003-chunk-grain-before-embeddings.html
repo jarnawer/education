@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 0003 - Chunk Grain Before Embeddings</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #637487;
+      --paper: #fbfaf7;
+      --panel: #ffffff;
+      --line: #dce3ea;
+      --blue: #2457c5;
+      --teal: #0f766e;
+      --red: #b42318;
+      --green: #0f766e;
+      --amber: #9a5b00;
+      --warm: #f7efe3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(36, 87, 197, 0.08), transparent 33rem),
+        radial-gradient(circle at bottom right, rgba(15, 118, 110, 0.07), transparent 30rem),
+        var(--paper);
+      color: var(--ink);
+      font: 17px/1.56 Georgia, "Times New Roman", serif;
+    }
+    main { max-width: 940px; margin: 0 auto; padding: 44px 22px 72px; }
+    header { border-bottom: 2px solid var(--ink); padding-bottom: 24px; margin-bottom: 28px; display: grid; gap: 16px; }
+    .eyebrow { font-family: ui-sans-serif, system-ui, sans-serif; color: var(--muted); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.12em; }
+    h1, h2, h3 { margin: 0; line-height: 1.12; }
+    h1 { max-width: 830px; font-size: clamp(2.15rem, 6vw, 4.6rem); letter-spacing: -0.045em; }
+    h2 { font-size: 1.55rem; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 22px; }
+    h3 { font-size: 1.08rem; }
+    p { margin: 0.8rem 0; }
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #eef1f4; padding: 0.08rem 0.25rem; border-radius: 4px; }
+    .lede { max-width: 740px; color: var(--muted); font-size: 1.12rem; }
+    .goal { background: var(--warm); border: 1px solid #ead7bd; border-radius: 18px; padding: 18px 20px; max-width: 780px; }
+    .triad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 20px 0; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 20px; box-shadow: 0 14px 34px rgba(23, 33, 43, 0.06); }
+    .card:nth-child(1) { border-top: 5px solid var(--teal); }
+    .card:nth-child(2) { border-top: 5px solid var(--blue); }
+    .card:nth-child(3) { border-top: 5px solid var(--amber); }
+    .small { color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.94rem; }
+    .rule { background: #101820; color: #f7fbff; border-radius: 20px; padding: 22px; font-size: clamp(1.32rem, 3vw, 1.9rem); line-height: 1.25; letter-spacing: -0.025em; }
+    .example { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }
+    .slice { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+    .bad { border-left: 5px solid var(--red); }
+    .good { border-left: 5px solid var(--green); }
+    .lab { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 22px; margin-top: 18px; box-shadow: 0 18px 42px rgba(23, 33, 43, 0.08); }
+    .case { border-top: 1px solid var(--line); padding: 18px 0; }
+    .case:first-child { border-top: 0; padding-top: 0; }
+    .prompt { font-weight: 700; margin-bottom: 10px; }
+    .legend { color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.94rem; background: #f4f7fa; border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+    button { border: 1px solid #c8d2dc; border-radius: 999px; background: #f6f8fa; color: var(--ink); padding: 10px 14px; cursor: pointer; font: 700 0.92rem/1 ui-sans-serif, system-ui, sans-serif; min-width: 92px; }
+    button:hover { border-color: var(--blue); }
+    button.correct { background: #e7f6f3; border-color: var(--green); color: #074d47; }
+    button.wrong { background: #fff0ee; border-color: var(--red); color: #8a1f15; }
+    .feedback { min-height: 1.6rem; color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.94rem; }
+    .practice-box { background: #eef4ff; border-left: 4px solid var(--blue); padding: 14px 16px; margin-top: 16px; }
+    .next { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    footer { margin-top: 44px; color: var(--muted); font-size: 0.92rem; }
+    @media (max-width: 780px) {
+      main { padding: 28px 16px 56px; }
+      .triad, .example { grid-template-columns: 1fr; }
+      button { flex: 1 1 100%; }
+    }
+    @media print {
+      body { background: white; }
+      main { padding: 0; }
+      .card, .slice, .lab, .next { box-shadow: none; break-inside: avoid; }
+      button { display: none; }
+      .feedback:empty::after { content: "Answer this during review."; color: #666; }
+      a { color: black; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Lesson 0003 - 15 minutes - Retrieval grain</div>
+      <h1>Chunk grain before embeddings</h1>
+      <p class="lede">A vector index retrieves chunks, not documents and not abstract ideas. Before asking which embedding model to use, choose the unit of meaning that should be retrievable.</p>
+      <div class="goal"><strong>Mission link:</strong> senior RAG engineers can defend why their system retrieves at a particular grain. This lesson gives you that design habit.</div>
+    </header>
+
+    <section id="knowledge">
+      <h2>1. The Minimum Knowledge</h2>
+      <p>LlamaIndex describes ingestion as loading data, transforming it, then indexing and storing it. The transformation stage includes chunking, extracting metadata, and embedding each chunk <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/loading/">[source]</a>.</p>
+      <p>When documents become a <code>VectorStoreIndex</code>, they are split into Nodes and each node receives a vector embedding. At query time, the query is also embedded, and the index ranks chunks by semantic similarity <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/indexing/">[source]</a>.</p>
+      <p>That means chunking is an architecture decision. LlamaIndex says an Index should be complementary to the querying strategy <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/indexing/">[source]</a>. If your query needs a contract clause, a support answer, or a ticket summary, your chunks should usually preserve that unit of meaning.</p>
+    </section>
+
+    <section id="model">
+      <h2>2. The Three Knobs</h2>
+      <div class="triad">
+        <article class="card">
+          <h3>Size</h3>
+          <p>Smaller chunks improve precision. Larger chunks preserve context. Neither is always right.</p>
+          <p class="small">Question: is the answer buried or fragmented?</p>
+        </article>
+        <article class="card">
+          <h3>Overlap</h3>
+          <p>Overlap protects answers that cross boundaries. It also creates duplicate vectors and repeated context.</p>
+          <p class="small">Question: are misses caused by chunk edges?</p>
+        </article>
+        <article class="card">
+          <h3>Metadata</h3>
+          <p>Metadata lets retrieval filter by source, date, tenant, permission, product, or jurisdiction before ranking.</p>
+          <p class="small">Question: should similarity be constrained?</p>
+        </article>
+      </div>
+      <div class="rule">Treat chunks like data-model grain: the smallest stable unit that can answer the target query shape.</div>
+      <p>Reference to keep open: <a href="../reference/0003-chunk-design-reference.html">Chunk Design Reference</a>.</p>
+    </section>
+
+    <section id="example">
+      <h2>3. A Tiny Example</h2>
+      <p>Imagine a policy corpus. The user asks, "What is the refund window for enterprise customers in France?"</p>
+      <div class="example">
+        <article class="slice bad">
+          <h3>Weak grain</h3>
+          <p>One 2,000-token chunk covers refunds, cancellations, exceptions, regions, and billing disputes.</p>
+          <p class="small">Problem: top-k may retrieve the right chunk, but the answer is surrounded by noise.</p>
+        </article>
+        <article class="slice good">
+          <h3>Better grain</h3>
+          <p>One chunk holds the refund clause plus section title, effective date, customer segment, and jurisdiction metadata.</p>
+          <p class="small">Benefit: retrieval can filter to France and enterprise, then rank a focused clause.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="practice">
+      <h2>4. Retrieval Practice</h2>
+      <p>Choose the first chunking move you would try. Use memory first, then check the reference.</p>
+      <div class="lab">
+        <div class="legend"><strong>Choice map:</strong> Plan A = split smaller. Plan B = keep larger. Plan C = add context through overlap, title path, or metadata.</div>
+
+        <div class="case" data-correct="Plan A" data-feedback="Correct. The answer reaches retrieval, but too much unrelated text arrives with it. Reduce chunk size or split on better structure.">
+          <div class="prompt">The correct chunk is retrieved, but it contains five unrelated policy topics and the answer is easy to miss.</div>
+          <div class="buttons"><button>Plan A</button><button>Plan B</button><button>Plan C</button></div>
+          <div class="feedback"></div>
+        </div>
+
+        <div class="case" data-correct="Plan C" data-feedback="Correct. Boundary failures often need overlap or parent context so the full answer survives chunk edges.">
+          <div class="prompt">The answer starts at the end of one chunk and finishes at the start of the next chunk.</div>
+          <div class="buttons"><button>Plan A</button><button>Plan B</button><button>Plan C</button></div>
+          <div class="feedback"></div>
+        </div>
+
+        <div class="case" data-correct="Plan B" data-feedback="Correct. If the chunk is too narrow to carry the definition plus the exception, preserve a larger semantic unit.">
+          <div class="prompt">Retrieved clauses are precise, but each clause relies on the definition immediately above it.</div>
+          <div class="buttons"><button>Plan A</button><button>Plan B</button><button>Plan C</button></div>
+          <div class="feedback"></div>
+        </div>
+
+        <div class="case" data-correct="Plan C" data-feedback="Correct. Similarity alone cannot enforce business constraints. Add metadata and filters for date, region, tenant, or permission.">
+          <div class="prompt">Search returns semantically relevant policies, but from the wrong country and effective date.</div>
+          <div class="buttons"><button>Plan A</button><button>Plan B</button><button>Plan C</button></div>
+          <div class="feedback"></div>
+        </div>
+      </div>
+      <div class="practice-box"><strong>One-minute production habit:</strong> for each target question type, write the ideal retrievable unit before choosing chunk size. Example: "numbered clause with section path and effective date."</div>
+    </section>
+
+    <section id="next">
+      <h2>5. What To Read Next</h2>
+      <div class="next">
+        <p><strong>Primary source:</strong> read <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/loading/">LlamaIndex: Loading Data (Ingestion)</a>, especially the transformations section.</p>
+        <p><strong>Why this one:</strong> it grounds chunking in the ingestion pipeline and shows where text splitters, metadata extraction, and embeddings fit.</p>
+        <p><strong>Ask me after reading:</strong> "Quiz me on chunk grain" or "Teach me top-k retrieval next."</p>
+      </div>
+    </section>
+
+    <footer>
+      Workspace links: <a href="../MISSION.md">Mission</a> | <a href="../RESOURCES.md">Resources</a> | <a href="../reference/0001-rag-vs-graphrag-map.html">Reference 0001</a> | <a href="../reference/0002-baseline-rag-pipeline.html">Reference 0002</a> | <a href="../reference/0003-chunk-design-reference.html">Reference 0003</a> | <a href="0001-rag-vs-graphrag-first-decision.html">Lesson 0001</a> | <a href="0002-baseline-rag-as-two-pipelines.html">Lesson 0002</a>
+    </footer>
+  </main>
+
+  <script>
+    document.querySelectorAll(".case").forEach((caseEl) => {
+      const feedback = caseEl.querySelector(".feedback");
+      caseEl.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          caseEl.querySelectorAll("button").forEach((b) => b.classList.remove("correct", "wrong"));
+          const ok = button.textContent === caseEl.dataset.correct;
+          button.classList.add(ok ? "correct" : "wrong");
+          feedback.textContent = ok ? caseEl.dataset.feedback : "Not first. Re-read the symptom: is the chunk too noisy, too narrow, split at a boundary, or missing constraints?";
+        });
+      });
+    });
+  </script>
+</body>
+</html>

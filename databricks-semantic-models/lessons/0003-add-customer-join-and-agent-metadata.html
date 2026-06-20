@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 0003: Add a Customer Join and Agent Metadata</title>
+  <style>
+    :root {
+      --ink: #15191f;
+      --muted: #5f6673;
+      --paper: #f7f6f1;
+      --white: #fffefd;
+      --soft: #e9edf0;
+      --line: #d8d5cc;
+      --accent: #2f6f73;
+      --accent-dark: #16464a;
+      --gold: #c18a2d;
+      --good: #18794e;
+      --bad: #b42318;
+      --code-bg: #15191f;
+      --code-fg: #f8f5ec;
+      --shadow: 0 20px 55px rgba(21, 25, 31, .11);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 88% 8%, rgba(47, 111, 115, .16), transparent 34rem),
+        radial-gradient(circle at 4% 18%, rgba(193, 138, 45, .12), transparent 28rem),
+        var(--paper);
+      font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+      line-height: 1.58;
+    }
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 48px 22px 76px;
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 26px;
+      align-items: end;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(255, 254, 253, .86);
+      box-shadow: var(--shadow);
+    }
+    .eyebrow {
+      color: var(--accent-dark);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(36px, 7vw, 72px);
+      line-height: .92;
+      letter-spacing: -0.055em;
+      margin: 10px 0 14px;
+    }
+    h2 {
+      margin: 40px 0 12px;
+      font-size: 27px;
+      letter-spacing: -0.025em;
+    }
+    h3 { margin: 0 0 8px; font-size: 19px; }
+    p { max-width: 78ch; }
+    a { color: var(--accent-dark); text-underline-offset: 3px; }
+    code {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-size: .9em;
+    }
+    pre {
+      margin: 12px 0 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: var(--code-fg);
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    pre code {
+      background: transparent;
+      border: 0;
+      color: inherit;
+      padding: 0;
+    }
+    .lede { color: var(--muted); font-size: 20px; margin: 0; }
+    .mission {
+      border-left: 4px solid var(--accent);
+      padding: 12px 0 12px 18px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .panel, .card, .quiz-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 10px 28px rgba(21, 25, 31, .06);
+      margin: 16px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 16px 0;
+    }
+    .two {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 16px 0;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 62px 1fr;
+      gap: 14px;
+      align-items: start;
+      margin: 14px 0;
+    }
+    .num {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--ink);
+      color: var(--paper);
+      font: 900 16px/1 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .callout {
+      background: #15191f;
+      color: #f8f5ec;
+      border-radius: 18px;
+      padding: 22px;
+      margin: 20px 0;
+      font-size: 21px;
+      line-height: 1.35;
+    }
+    .source { color: var(--muted); font-size: 14px; }
+    .tag {
+      display: inline-block;
+      color: white;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font: 800 12px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin-bottom: 8px;
+    }
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 12px 0 16px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+    }
+    .answers div {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .item {
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      gap: 12px;
+      align-items: center;
+      border-top: 1px solid var(--line);
+      padding: 12px 0;
+    }
+    select, button, textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      font: 600 15px/1.2 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 10px 12px;
+    }
+    textarea {
+      min-height: 78px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      line-height: 1.4;
+    }
+    button {
+      cursor: pointer;
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      margin-top: 12px;
+    }
+    .feedback {
+      min-height: 28px;
+      margin-top: 12px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 800;
+    }
+    .correct { color: var(--good); }
+    .wrong { color: var(--bad); }
+    .nav {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    @media (max-width: 850px) {
+      header, .grid, .two, .nav, .item { grid-template-columns: 1fr; }
+      main { padding: 24px 16px 48px; }
+      header { padding: 22px; }
+      .step { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: white; }
+      header, .panel, .card, .quiz-card { box-shadow: none; }
+      button, select, textarea { display: none; }
+      pre, .card, .panel { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <div class="eyebrow">Lesson 0003 - 20 minutes</div>
+        <h1>Add a Customer Join and Agent Metadata</h1>
+        <p class="lede">Extend the minimal order Metric View with <code>samples.tpch.customer</code>, then make it clean for dashboards and Genie.</p>
+      </div>
+      <div class="mission">
+        <strong>Mission tie-in:</strong> this is where a Metric View starts acting like a reusable BI semantic model: it gains customer dimensions, human labels, display formats, and synonyms that consumption tools can understand.
+      </div>
+    </header>
+
+    <section id="target-skill">
+      <h2>Target Skill</h2>
+      <p>By the end, you should be able to add one many-to-one dimension join, expose joined fields with dot notation, and attach <code>display_name</code>, <code>format</code>, and <code>synonyms</code> metadata to fields and measures.</p>
+      <p class="source">Primary source: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/tpch-example">Databricks tutorial: Build a complete metric view with joins</a>. Metadata source: <a href="https://docs.databricks.com/aws/en/business-semantics/agent-metadata">Databricks docs: Agent metadata in metric views</a>. Join source: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/joins">Databricks docs: Joins in metric views</a>.</p>
+    </section>
+
+    <section id="mental-model">
+      <h2>The Three Additions</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="tag">join</span>
+          <h3>Customer Dimension</h3>
+          <p>Join <code>orders</code> to <code>customer</code> on <code>o_custkey = c_custkey</code>. Databricks says joins enrich source rows with related attributes; many-to-one is the default cardinality.</p>
+        </article>
+        <article class="card">
+          <span class="tag">fields</span>
+          <h3>Business Segments</h3>
+          <p>Expose joined columns such as <code>customer.c_mktsegment</code> as fields. Fields remain the query-time grouping and filtering surface.</p>
+        </article>
+        <article class="card">
+          <span class="tag">metadata</span>
+          <h3>Consumption Polish</h3>
+          <p>Add labels, formats, and synonyms so AI/BI dashboards display values cleanly and Genie can match natural-language terms.</p>
+        </article>
+      </div>
+      <div class="callout">The join changes what users can group by. Agent metadata changes whether humans and AI tools can find, read, and trust those fields and measures.</div>
+    </section>
+
+    <section id="build">
+      <h2>Build It</h2>
+      <div class="step">
+        <div class="num">1</div>
+        <div>
+          <h3>Create the enriched Metric View</h3>
+          <p>Replace <code>&lt;catalog&gt;.&lt;schema&gt;</code>. The <code>rely</code> declaration is an optimization assertion: keep it only when each order really matches at most one customer. Databricks warns that incorrect <code>rely</code> assertions can produce wrong measure results.</p>
+          <pre><code class="language-sql">CREATE OR REPLACE VIEW &lt;catalog&gt;.&lt;schema&gt;.orders_customer_metric_view
+WITH METRICS
+LANGUAGE YAML
+COMMENT 'TPC-H order KPIs enriched with customer metadata.'
+AS $$
+version: 1.1
+comment: Order metrics with customer segmentation and AI/BI metadata.
+source: samples.tpch.orders
+joins:
+  - name: customer
+    source: samples.tpch.customer
+    on: source.o_custkey = customer.c_custkey
+    rely:
+      at_most_one_match: true
+filter: o_orderdate &gt;= '1995-01-01'
+fields:
+  - name: order_month
+    expr: DATE_TRUNC('MONTH', o_orderdate)
+    comment: Month when the order was placed.
+    display_name: Order Month
+  - name: order_status
+    expr: |
+      CASE o_orderstatus
+        WHEN 'O' THEN 'Open'
+        WHEN 'P' THEN 'Processing'
+        WHEN 'F' THEN 'Fulfilled'
+      END
+    comment: Business label for order status.
+    display_name: Order Status
+    synonyms:
+      - status
+      - fulfillment status
+  - name: customer_name
+    expr: customer.c_name
+    comment: Customer name from the joined customer dimension.
+    display_name: Customer Name
+  - name: market_segment
+    expr: customer.c_mktsegment
+    comment: Customer market segment from the joined customer dimension.
+    display_name: Market Segment
+    synonyms:
+      - segment
+      - industry
+measures:
+  - name: order_count
+    expr: COUNT(DISTINCT o_orderkey)
+    comment: Count of distinct orders.
+    display_name: Order Count
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+      abbreviation: compact
+    synonyms:
+      - orders
+      - number of orders
+  - name: total_revenue
+    expr: SUM(o_totalprice)
+    comment: Sum of order total price.
+    display_name: Total Revenue
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+    synonyms:
+      - revenue
+      - sales
+  - name: unique_customers
+    expr: COUNT(DISTINCT o_custkey)
+    comment: Count of distinct customers.
+    display_name: Unique Customers
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+      abbreviation: compact
+  - name: revenue_per_customer
+    expr: MEASURE(total_revenue) / MEASURE(unique_customers)
+    comment: Revenue divided by unique customers.
+    display_name: Revenue per Customer
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+    synonyms:
+      - customer revenue
+      - revenue per buyer
+$$;</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">2</div>
+        <div>
+          <h3>Query by joined field</h3>
+          <p>The query sees <code>market_segment</code> as a normal field, even though its expression comes from the joined customer table.</p>
+          <pre><code class="language-sql">SELECT
+  market_segment,
+  MEASURE(total_revenue) AS total_revenue,
+  MEASURE(order_count) AS order_count,
+  MEASURE(revenue_per_customer) AS revenue_per_customer
+FROM &lt;catalog&gt;.&lt;schema&gt;.orders_customer_metric_view
+GROUP BY market_segment
+ORDER BY total_revenue DESC;</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div>
+          <h3>Query by customer and status</h3>
+          <p>The same governed measures now work at a customer-grain grouping without redefining the KPI.</p>
+          <pre><code class="language-sql">SELECT
+  customer_name,
+  order_status,
+  MEASURE(total_revenue) AS total_revenue,
+  MEASURE(order_count) AS order_count
+FROM &lt;catalog&gt;.&lt;schema&gt;.orders_customer_metric_view
+GROUP BY customer_name, order_status
+ORDER BY total_revenue DESC
+LIMIT 20;</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="metadata-why">
+      <h2>Why Metadata Is Not Decoration</h2>
+      <div class="two">
+        <article class="card">
+          <h3>For dashboards</h3>
+          <p>Databricks says semantic metadata automatically populates downstream AI/BI dashboards. <code>display_name</code> improves labels, and <code>format</code> controls currency, number, percentage, byte, date, and datetime display.</p>
+        </article>
+        <article class="card">
+          <h3>For Genie</h3>
+          <p>Databricks says <code>synonyms</code> help Genie discover fields and measures from natural language. A user asking for "sales by segment" can map to <code>total_revenue</code> and <code>market_segment</code>.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="practice">
+      <h2>Retrieval Practice</h2>
+      <div class="quiz-card">
+        <h3>Classify the YAML property</h3>
+        <p>Use the answer bank. The labels are intentionally one character each.</p>
+        <div class="answers">
+          <div><strong>D</strong>: Display</div>
+          <div><strong>F</strong>: Format</div>
+          <div><strong>S</strong>: Synonym</div>
+        </div>
+        <div class="item">
+          <div><code>display_name: Total Revenue</code></div>
+          <select data-answer="D" aria-label="Classify display_name"><option value="">?</option><option>D</option><option>F</option><option>S</option></select>
+        </div>
+        <div class="item">
+          <div><code>currency_code: USD</code></div>
+          <select data-answer="F" aria-label="Classify currency_code"><option value="">?</option><option>D</option><option>F</option><option>S</option></select>
+        </div>
+        <div class="item">
+          <div><code>- sales</code></div>
+          <select data-answer="S" aria-label="Classify sales synonym"><option value="">?</option><option>D</option><option>F</option><option>S</option></select>
+        </div>
+        <div class="item">
+          <div><code>abbreviation: compact</code></div>
+          <select data-answer="F" aria-label="Classify abbreviation"><option value="">?</option><option>D</option><option>F</option><option>S</option></select>
+        </div>
+        <button type="button" onclick="checkClassify()">Check classification</button>
+        <div id="classify-feedback" class="feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-card">
+        <h3>Write the joined field expression</h3>
+        <p>Complete the expression for <code>market_segment</code>. Type only the expression, not the field name.</p>
+        <pre><code class="language-yaml">fields:
+  - name: market_segment
+    expr: ______________</code></pre>
+        <textarea id="join-answer" aria-label="Joined field expression" placeholder="Type expression here"></textarea>
+        <button type="button" onclick="checkJoin()">Check expression</button>
+        <div id="join-feedback" class="feedback" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="reference">
+      <h2>Reference</h2>
+      <div class="nav">
+        <article class="card">
+          <h3>New cookbook</h3>
+          <p><a href="../reference/0003-joined-metric-view-metadata-cookbook.html">Joined Metric View Metadata Cookbook</a></p>
+        </article>
+        <article class="card">
+          <h3>Previous lesson</h3>
+          <p><a href="./0002-build-a-minimal-metric-view.html">Build a Minimal Metric View</a></p>
+        </article>
+        <article class="card">
+          <h3>Previous cookbook</h3>
+          <p><a href="../reference/0002-minimal-metric-view-cookbook.html">Minimal Metric View Cookbook</a></p>
+        </article>
+      </div>
+    </section>
+
+    <section id="next-session">
+      <h2>Next Session</h2>
+      <p>Next we should use the enriched Metric View in a dashboard dataset, then contrast dashboard-local calculations with governed Metric View measures. Ask the agent follow-up questions if any part of the join, <code>rely</code>, or metadata behavior is unclear.</p>
+    </section>
+  </main>
+
+  <script>
+    function checkClassify() {
+      const selects = Array.from(document.querySelectorAll('select[data-answer]'));
+      let correct = 0;
+      let missing = 0;
+      selects.forEach((select) => {
+        select.classList.remove('correct', 'wrong');
+        if (!select.value) {
+          missing += 1;
+          return;
+        }
+        if (select.value === select.dataset.answer) {
+          correct += 1;
+          select.classList.add('correct');
+        } else {
+          select.classList.add('wrong');
+        }
+      });
+      const feedback = document.getElementById('classify-feedback');
+      if (missing > 0) {
+        feedback.className = 'feedback wrong';
+        feedback.textContent = 'Answer every item first. Missing: ' + missing + '.';
+        return;
+      }
+      if (correct === selects.length) {
+        feedback.className = 'feedback correct';
+        feedback.textContent = '4/4. You can separate labels, display rules, and natural-language aliases.';
+      } else {
+        feedback.className = 'feedback wrong';
+        feedback.textContent = correct + '/4. Display names label; formats render values; synonyms help Genie match language.';
+      }
+    }
+
+    function normalize(value) {
+      return value.trim().toLowerCase().replace(/\s+/g, '').replace(/`/g, '').replace(/;/g, '');
+    }
+
+    function checkJoin() {
+      const value = normalize(document.getElementById('join-answer').value);
+      const feedback = document.getElementById('join-feedback');
+      if (value === 'customer.c_mktsegment') {
+        feedback.className = 'feedback correct';
+        feedback.textContent = 'Correct. Joined columns use the join name and dot notation.';
+      } else if (value === 'c_mktsegment') {
+        feedback.className = 'feedback wrong';
+        feedback.textContent = 'Close, but make the join explicit: customer.c_mktsegment.';
+      } else {
+        feedback.className = 'feedback wrong';
+        feedback.textContent = 'Try customer.c_mktsegment.';
+      }
+    }
+  </script>
+</body>
+</html>

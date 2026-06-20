@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 0002 - Baseline RAG as Two Pipelines</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #637487;
+      --paper: #fbfaf7;
+      --panel: #ffffff;
+      --line: #dce3ea;
+      --blue: #2457c5;
+      --teal: #0f766e;
+      --red: #b42318;
+      --green: #0f766e;
+      --warm: #f7efe3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 32rem),
+        var(--paper);
+      color: var(--ink);
+      font: 17px/1.56 Georgia, "Times New Roman", serif;
+    }
+    main { max-width: 940px; margin: 0 auto; padding: 44px 22px 72px; }
+    header { border-bottom: 2px solid var(--ink); padding-bottom: 24px; margin-bottom: 28px; display: grid; gap: 16px; }
+    .eyebrow { font-family: ui-sans-serif, system-ui, sans-serif; color: var(--muted); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.12em; }
+    h1, h2, h3 { margin: 0; line-height: 1.12; }
+    h1 { max-width: 830px; font-size: clamp(2.15rem, 6vw, 4.6rem); letter-spacing: -0.045em; }
+    h2 { font-size: 1.55rem; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 22px; }
+    h3 { font-size: 1.08rem; }
+    p { margin: 0.8rem 0; }
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .lede { max-width: 740px; color: var(--muted); font-size: 1.12rem; }
+    .goal { background: var(--warm); border: 1px solid #ead7bd; border-radius: 18px; padding: 18px 20px; max-width: 780px; }
+    .diagram { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 20px 0; }
+    .rail { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 20px; box-shadow: 0 14px 34px rgba(23, 33, 43, 0.06); }
+    .offline { border-top: 5px solid var(--teal); }
+    .online { border-top: 5px solid var(--blue); }
+    .steps { display: grid; gap: 8px; margin-top: 14px; }
+    .step { display: grid; grid-template-columns: 86px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+    .step:first-child { border-top: 0; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--muted); }
+    .rule { background: #101820; color: #f7fbff; border-radius: 20px; padding: 22px; font-size: clamp(1.32rem, 3vw, 1.9rem); line-height: 1.25; letter-spacing: -0.025em; }
+    .lab { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 22px; margin-top: 18px; box-shadow: 0 18px 42px rgba(23, 33, 43, 0.08); }
+    .case { border-top: 1px solid var(--line); padding: 18px 0; }
+    .case:first-child { border-top: 0; padding-top: 0; }
+    .prompt { font-weight: 700; margin-bottom: 10px; }
+    .legend { color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.94rem; background: #f4f7fa; border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+    button { border: 1px solid #c8d2dc; border-radius: 999px; background: #f6f8fa; color: var(--ink); padding: 10px 14px; cursor: pointer; font: 700 0.92rem/1 ui-sans-serif, system-ui, sans-serif; min-width: 92px; }
+    button:hover { border-color: var(--blue); }
+    button.correct { background: #e7f6f3; border-color: var(--green); color: #074d47; }
+    button.wrong { background: #fff0ee; border-color: var(--red); color: #8a1f15; }
+    .feedback { min-height: 1.6rem; color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.94rem; }
+    .practice-box { background: #eef4ff; border-left: 4px solid var(--blue); padding: 14px 16px; margin-top: 16px; }
+    .next { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    footer { margin-top: 44px; color: var(--muted); font-size: 0.92rem; }
+    @media (max-width: 780px) {
+      main { padding: 28px 16px 56px; }
+      .diagram { grid-template-columns: 1fr; }
+      .step { grid-template-columns: 1fr; }
+      button { flex: 1 1 100%; }
+    }
+    @media print {
+      body { background: white; }
+      main { padding: 0; }
+      .rail, .lab, .next { box-shadow: none; break-inside: avoid; }
+      button { display: none; }
+      .feedback:empty::after { content: "Answer this during review."; color: #666; }
+      a { color: black; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Lesson 0002 - 15 minutes - Pipeline diagnosis</div>
+      <h1>Baseline RAG as two pipelines</h1>
+      <p class="lede">A RAG system is not one magic prompt. It is an offline indexing pipeline plus an online query pipeline. If you can name the rail where a decision belongs, you can debug and improve RAG systematically.</p>
+      <div class="goal"><strong>Mission link:</strong> senior RAG architects diagnose retrieval systems by component. This lesson gives you the first component map.</div>
+    </header>
+
+    <section id="knowledge">
+      <h2>1. The Minimum Knowledge</h2>
+      <p>LlamaIndex describes a practical RAG pipeline as five stages: loading, indexing, storing, querying, and evaluation <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">[source]</a>. For architecture work, split those into two rails.</p>
+      <p>The <strong>offline rail</strong> prepares data: load source data, transform it into chunks or nodes, create embeddings, and store the resulting index. LlamaIndex explicitly compares ingestion to ETL and says transformations include chunking, metadata extraction, and embedding each chunk <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/loading/">[source]</a>.</p>
+      <p>The <strong>online rail</strong> serves user questions: retrieve relevant documents or nodes, optionally postprocess them, then synthesize an answer. LlamaIndex defines querying as retrieval, postprocessing, and response synthesis <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/querying/">[source]</a>.</p>
+      <p>Embeddings are numerical representations of text meaning. A vector index uses them so queries can find semantically similar chunks, often through top-k retrieval <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/indexing/">[source]</a>. Persisting indexes or using vector stores avoids repeatedly paying the time and cost of re-indexing <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/storing/">[source]</a>.</p>
+    </section>
+
+    <section id="model">
+      <h2>2. The Two-Rail Model</h2>
+      <div class="diagram">
+        <article class="rail offline">
+          <h3>Offline indexing rail</h3>
+          <p>Runs before the user asks. Similar to ETL plus serving-index construction.</p>
+          <div class="steps">
+            <div class="step"><div class="code">Load</div><div>Read source data and attach metadata.</div></div>
+            <div class="step"><div class="code">Split</div><div>Create chunks or nodes at the right grain.</div></div>
+            <div class="step"><div class="code">Embed</div><div>Turn chunk meaning into vectors.</div></div>
+            <div class="step"><div class="code">Store</div><div>Persist chunks, vectors, metadata, and versions.</div></div>
+          </div>
+        </article>
+        <article class="rail online">
+          <h3>Online query rail</h3>
+          <p>Runs when the user asks. Similar to a serving path with retrieval and synthesis.</p>
+          <div class="steps">
+            <div class="step"><div class="code">Query</div><div>Accept, rewrite, classify, or route the question.</div></div>
+            <div class="step"><div class="code">Retrieve</div><div>Fetch candidate chunks from the index.</div></div>
+            <div class="step"><div class="code">Refine</div><div>Filter, rerank, expand, or trim context.</div></div>
+            <div class="step"><div class="code">Answer</div><div>Synthesize grounded output from question plus context.</div></div>
+          </div>
+        </article>
+      </div>
+      <div class="rule">Before changing prompts, inspect retrieval. If the right evidence did not reach the model, generation was never the real bug.</div>
+      <p>Reference to keep open: <a href="../reference/0002-baseline-rag-pipeline.html">Baseline RAG Pipeline Reference</a>.</p>
+    </section>
+
+    <section id="practice">
+      <h2>3. Retrieval Practice</h2>
+      <p>Choose the pipeline area where you would start diagnosis. Use memory first; then check the reference.</p>
+      <div class="lab">
+        <div class="legend"><strong>Choice map:</strong> Path A = offline ingestion/indexing. Path B = online retrieval/refinement. Path C = answer synthesis/model behavior.</div>
+
+        <div class="case">
+          <div class="prompt">Users ask about a new policy uploaded this morning, but the answer always says it cannot find the policy.</div>
+          <div class="buttons">
+            <button data-answer="correct">Path A</button>
+            <button data-answer="wrong">Path B</button>
+            <button data-answer="wrong">Path C</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+
+        <div class="case">
+          <div class="prompt">The correct document is indexed, but retrieved chunks are adjacent to the answer rather than the answer itself.</div>
+          <div class="buttons">
+            <button data-answer="wrong">Path A</button>
+            <button data-answer="correct">Path B</button>
+            <button data-answer="wrong">Path C</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+
+        <div class="case">
+          <div class="prompt">The retrieved context contains the exact answer, but the final response contradicts it.</div>
+          <div class="buttons">
+            <button data-answer="wrong">Path A</button>
+            <button data-answer="wrong">Path B</button>
+            <button data-answer="correct">Path C</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+
+        <div class="case">
+          <div class="prompt">The system works, but each deploy spends hours recomputing embeddings for unchanged documents.</div>
+          <div class="buttons">
+            <button data-answer="correct">Path A</button>
+            <button data-answer="wrong">Path B</button>
+            <button data-answer="wrong">Path C</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+      </div>
+      <div class="practice-box"><strong>One-minute production habit:</strong> for any RAG bug report, write three facts before proposing a fix: what was indexed, what was retrieved, and what was generated.</div>
+    </section>
+
+    <section id="next">
+      <h2>4. What To Read Next</h2>
+      <div class="next">
+        <p><strong>Primary source:</strong> read <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/indexing/">LlamaIndex: Indexing</a>, especially the sections on embeddings and top-k retrieval.</p>
+        <p><strong>Why this one:</strong> Lesson 0003 should go deeper on chunks, embeddings, and top-k retrieval. That is where many RAG quality failures begin.</p>
+        <p><strong>Ask me after reading:</strong> "Teach me chunking like a data modeler" or "Quiz me on the two RAG rails."</p>
+      </div>
+    </section>
+
+    <footer>
+      Workspace links: <a href="../MISSION.md">Mission</a> | <a href="../RESOURCES.md">Resources</a> | <a href="../reference/0001-rag-vs-graphrag-map.html">Reference 0001</a> | <a href="../reference/0002-baseline-rag-pipeline.html">Reference 0002</a> | <a href="0001-rag-vs-graphrag-first-decision.html">Lesson 0001</a>
+    </footer>
+  </main>
+
+  <script>
+    const messages = {
+      "Path A": "Correct. Start with ingestion, freshness, indexing, storage, and whether the source exists in the retrievable corpus.",
+      "Path B": "Correct. The source exists; now diagnose retrieval, chunk grain, top-k, filters, reranking, and context assembly.",
+      "Path C": "Correct. Retrieval succeeded; now inspect prompt, synthesis mode, model behavior, and grounding instructions.",
+      "Path A wrong": "Not first. The question says the relevant source or context is already indexed or retrieved.",
+      "Path B wrong": "Not first. Retrieval cannot fix missing ingestion, stale indexes, or a model contradicting supplied evidence.",
+      "Path C wrong": "Not first. Prompt changes cannot recover evidence that was missing or wrongly retrieved."
+    };
+
+    document.querySelectorAll(".case").forEach((caseEl) => {
+      const feedback = caseEl.querySelector(".feedback");
+      caseEl.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          caseEl.querySelectorAll("button").forEach((b) => b.classList.remove("correct", "wrong"));
+          const ok = button.dataset.answer === "correct";
+          button.classList.add(ok ? "correct" : "wrong");
+          const key = button.textContent + (ok ? "" : " wrong");
+          feedback.textContent = messages[key] || (ok ? "Correct." : "Try again. Name the failing rail first.");
+        });
+      });
+    });
+  </script>
+</body>
+</html>

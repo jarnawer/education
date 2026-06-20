@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baseline RAG Pipeline Reference</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #637487;
+      --paper: #fbfaf7;
+      --panel: #ffffff;
+      --line: #dce3ea;
+      --blue: #2457c5;
+      --teal: #0f766e;
+      --amber: #9a5b00;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 17px/1.52 Georgia, "Times New Roman", serif;
+    }
+    main { max-width: 1060px; margin: 0 auto; padding: 48px 24px 72px; }
+    header { border-bottom: 2px solid var(--ink); padding-bottom: 22px; margin-bottom: 26px; }
+    h1, h2, h3 { margin: 0; line-height: 1.12; }
+    h1 { font-size: clamp(2.2rem, 6vw, 4.2rem); letter-spacing: -0.045em; }
+    h2 { font-size: 1.45rem; margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line); }
+    h3 { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; }
+    p { margin: 0.75rem 0; }
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .subtitle { max-width: 760px; color: var(--muted); font-size: 1.08rem; }
+    .rails { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+    .rail { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 20px; box-shadow: 0 12px 30px rgba(23,33,43,0.06); }
+    .offline { border-top: 5px solid var(--teal); }
+    .online { border-top: 5px solid var(--blue); }
+    .flow { display: grid; gap: 8px; margin-top: 12px; }
+    .step { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
+    .step:first-child { border-top: 0; }
+    .label { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 0.96rem; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { font-family: ui-sans-serif, system-ui, sans-serif; color: var(--muted); background: #f1f4f7; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    .warning { border-left: 4px solid var(--amber); background: #fff7e8; padding: 14px 16px; margin: 20px 0; }
+    footer { margin-top: 42px; color: var(--muted); font-size: 0.92rem; }
+    @media (max-width: 800px) {
+      main { padding: 28px 16px 56px; }
+      .rails { grid-template-columns: 1fr; }
+      .step { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: white; }
+      main { padding: 0; }
+      .rail, table { box-shadow: none; break-inside: avoid; }
+      a { color: black; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Baseline RAG Pipeline Reference</h1>
+      <p class="subtitle">The two-rail mental model for baseline RAG: one offline pipeline prepares searchable context; one online pipeline turns a user query into grounded output.</p>
+    </header>
+
+    <section class="rails" aria-label="RAG pipeline rails">
+      <article class="rail offline">
+        <h3>Offline Indexing Rail</h3>
+        <p><strong>Goal:</strong> convert source data into retrievable context.</p>
+        <div class="flow">
+          <div class="step"><div class="label">01 Load</div><div>Read from files, APIs, databases, object stores, or SaaS systems into documents with metadata.</div></div>
+          <div class="step"><div class="label">02 Split</div><div>Transform documents into chunks or nodes small enough to retrieve and fit into model context.</div></div>
+          <div class="step"><div class="label">03 Embed</div><div>Create vector representations of chunk meaning so semantic search can work.</div></div>
+          <div class="step"><div class="label">04 Store</div><div>Persist chunks, embeddings, metadata, document IDs, and version information.</div></div>
+        </div>
+      </article>
+      <article class="rail online">
+        <h3>Online Query Rail</h3>
+        <p><strong>Goal:</strong> retrieve useful context and synthesize a grounded answer.</p>
+        <div class="flow">
+          <div class="step"><div class="label">05 Query</div><div>Receive the user question and optionally rewrite, classify, or route it.</div></div>
+          <div class="step"><div class="label">06 Retrieve</div><div>Search the index, often with top-k semantic retrieval plus metadata filters or hybrid search.</div></div>
+          <div class="step"><div class="label">07 Refine</div><div>Rerank, filter, expand, or trim retrieved chunks before they reach the model.</div></div>
+          <div class="step"><div class="label">08 Answer</div><div>Send question plus selected context to the LLM and return the response with citations when possible.</div></div>
+        </div>
+      </article>
+    </section>
+
+    <section>
+      <h2>Data Engineering Analogy</h2>
+      <table>
+        <thead>
+          <tr><th>RAG Concept</th><th>Data Engineering Analogy</th><th>Senior Question</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Document loader</td><td>Source connector</td><td>What source truth, permissions, and freshness guarantees does it inherit?</td></tr>
+          <tr><td>Chunk or node</td><td>Modeled analytical grain</td><td>Is this unit big enough to preserve meaning and small enough to retrieve precisely?</td></tr>
+          <tr><td>Embedding model</td><td>Feature transformation</td><td>Does this representation match the language, domain, and query style?</td></tr>
+          <tr><td>Vector store</td><td>Serving index</td><td>Can it support filters, updates, latency, tenancy, and operational recovery?</td></tr>
+          <tr><td>Retriever</td><td>Query planner</td><td>Does it fetch the evidence the answer actually needs?</td></tr>
+          <tr><td>Postprocessor</td><td>Quality gate</td><td>Should we rerank, filter by metadata, drop low-similarity chunks, or add neighboring context?</td></tr>
+          <tr><td>Response synthesizer</td><td>Serving transformation</td><td>Does the final output stay grounded in retrieved context?</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Diagnostic Map</h2>
+      <table>
+        <thead>
+          <tr><th>Symptom</th><th>Start Looking At</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Correct document never appears</td><td>Loading, metadata, permissions, indexing</td><td>The evidence may never have entered the retrievable corpus.</td></tr>
+          <tr><td>Correct document appears, wrong passage selected</td><td>Chunking, embeddings, top-k, hybrid retrieval</td><td>The index may have the source but retrieve the wrong grain.</td></tr>
+          <tr><td>Good chunks retrieved, answer still wrong</td><td>Prompt, synthesis, context ordering, model behavior</td><td>Retrieval succeeded; generation or instruction following failed.</td></tr>
+          <tr><td>Answer is good but too slow or costly</td><td>Storage, top-k, reranking, context size, model choice</td><td>Quality is acceptable; serving economics are the bottleneck.</td></tr>
+          <tr><td>Fresh content is missing</td><td>Ingestion cadence, incremental updates, invalidation</td><td>The offline rail is stale relative to user expectations.</td></tr>
+        </tbody>
+      </table>
+      <p class="warning"><strong>Rule:</strong> do not fix a RAG failure with prompt changes until you know whether the right evidence was retrieved.</p>
+    </section>
+
+    <footer>
+      Related lesson: <a href="../lessons/0002-baseline-rag-as-two-pipelines.html">Baseline RAG as Two Pipelines</a>. Previous reference: <a href="0001-rag-vs-graphrag-map.html">RAG vs GraphRAG Decision Map</a>. Primary source: <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">LlamaIndex RAG docs</a>.
+    </footer>
+  </main>
+</body>
+</html>

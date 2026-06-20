@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 0001 - RAG vs GraphRAG</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #667789;
+      --paper: #fbfaf7;
+      --panel: #ffffff;
+      --line: #dce3ea;
+      --accent: #2457c5;
+      --good: #0f766e;
+      --bad: #b42318;
+      --warm: #f7efe3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(36, 87, 197, 0.08), transparent 34rem),
+        var(--paper);
+      color: var(--ink);
+      font: 17px/1.56 Georgia, "Times New Roman", serif;
+    }
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 44px 22px 72px;
+    }
+    header {
+      display: grid;
+      gap: 16px;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 24px;
+      margin-bottom: 28px;
+    }
+    .eyebrow {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    h1, h2, h3 { margin: 0; line-height: 1.12; }
+    h1 { font-size: clamp(2.2rem, 6vw, 4.8rem); letter-spacing: -0.045em; max-width: 820px; }
+    h2 { font-size: 1.55rem; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 22px; }
+    h3 { font-size: 1.05rem; }
+    p { margin: 0.8rem 0; }
+    a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .lede { max-width: 720px; color: var(--muted); font-size: 1.12rem; }
+    .goal {
+      background: var(--warm);
+      border: 1px solid #ead7bd;
+      border-radius: 18px;
+      padding: 18px 20px;
+      max-width: 760px;
+    }
+    .columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 18px 0; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 14px 34px rgba(23, 33, 43, 0.06);
+    }
+    .card strong { color: var(--ink); }
+    .source {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+    .rule {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      line-height: 1.25;
+      letter-spacing: -0.025em;
+      background: #101820;
+      color: #f7fbff;
+      border-radius: 20px;
+      padding: 22px;
+      margin: 20px 0;
+    }
+    .lab {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      margin-top: 18px;
+      box-shadow: 0 18px 42px rgba(23, 33, 43, 0.08);
+    }
+    .case {
+      border-top: 1px solid var(--line);
+      padding: 18px 0;
+    }
+    .case:first-child { border-top: 0; padding-top: 0; }
+    .question { font-weight: 700; margin-bottom: 10px; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+    button {
+      border: 1px solid #c8d2dc;
+      border-radius: 999px;
+      background: #f6f8fa;
+      color: var(--ink);
+      padding: 10px 14px;
+      cursor: pointer;
+      font: 600 0.92rem/1 ui-sans-serif, system-ui, sans-serif;
+      min-width: 118px;
+    }
+    button:hover { border-color: var(--accent); }
+    button.correct { background: #e7f6f3; border-color: var(--good); color: #074d47; }
+    button.wrong { background: #fff0ee; border-color: var(--bad); color: #8a1f15; }
+    .feedback { min-height: 1.6rem; color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.94rem; }
+    .practice-box {
+      background: #eef4ff;
+      border-left: 4px solid var(--accent);
+      padding: 14px 16px;
+      margin-top: 16px;
+    }
+    .next { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #eef1f4; padding: 0.08rem 0.25rem; border-radius: 4px; }
+    footer { margin-top: 44px; color: var(--muted); font-size: 0.92rem; }
+    @media (max-width: 760px) {
+      main { padding: 28px 16px 56px; }
+      .columns { grid-template-columns: 1fr; }
+      button { flex: 1 1 100%; }
+    }
+    @media print {
+      body { background: white; }
+      main { padding: 0; }
+      .card, .lab, .next { box-shadow: none; break-inside: avoid; }
+      button { display: none; }
+      .feedback:empty::after { content: "Answer this during review."; color: #666; }
+      a { color: black; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Lesson 0001 - 12 minutes - Architecture instinct</div>
+      <h1>RAG vs GraphRAG: the first architecture decision</h1>
+      <p class="lede">Your first senior-level habit is not choosing a framework. It is classifying the question shape. That one decision prevents expensive over-engineering and weak retrieval systems.</p>
+      <div class="goal"><strong>Mission link:</strong> you want to become expert enough to design and defend RAG/GraphRAG systems. Today you will learn the first decision boundary.</div>
+    </header>
+
+    <section id="knowledge">
+      <h2>1. The Minimum Knowledge</h2>
+      <p>The original RAG idea combines a language model's internal, parametric knowledge with external, non-parametric memory retrieved from an index. Lewis et al. describe this as a way to improve knowledge-intensive generation, support provenance, and update knowledge outside the model weights <a href="https://arxiv.org/abs/2005.11401">[source]</a>.</p>
+      <p>In practical systems, RAG usually means: load data, split it into chunks or nodes, create embeddings, store them in an index, retrieve relevant context for a user query, then synthesize an answer. LlamaIndex documents these stages as loading, indexing, storing, querying, and evaluation <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">[source]</a>.</p>
+      <p>GraphRAG changes the shape. Microsoft describes it as extracting entities and relationships from text, building a graph, clustering that graph into communities, summarizing those communities, then using graph structures at query time <a href="https://microsoft.github.io/graphrag/">[source]</a>. The GraphRAG paper argues this helps with global questions such as "What are the main themes in the dataset?", where baseline retrieval is not enough <a href="https://arxiv.org/abs/2404.16130">[source]</a>.</p>
+    </section>
+
+    <section id="rule">
+      <h2>2. The Rule</h2>
+      <div class="rule">Use baseline RAG for local evidence. Consider GraphRAG for global sensemaking or relationship traversal.</div>
+      <div class="columns">
+        <article class="card">
+          <h3>Baseline RAG question</h3>
+          <p><strong>Shape:</strong> "Find the few chunks that answer this."</p>
+          <p><strong>Example:</strong> "What does the contract say about renewal notice?"</p>
+          <p><strong>Architectural match:</strong> chunking, embeddings, metadata filters, hybrid search, reranking.</p>
+          <p class="source">Use when evidence is likely concentrated.</p>
+        </article>
+        <article class="card">
+          <h3>GraphRAG question</h3>
+          <p><strong>Shape:</strong> "Connect many facts across the corpus."</p>
+          <p><strong>Example:</strong> "What are the recurring risk themes across all incident reports?"</p>
+          <p><strong>Architectural match:</strong> entities, relationships, communities, community summaries, graph-aware search.</p>
+          <p class="source">Use when evidence is distributed.</p>
+        </article>
+      </div>
+      <p>Reference to keep open: <a href="../reference/0001-rag-vs-graphrag-map.html">RAG vs GraphRAG Decision Map</a>.</p>
+    </section>
+
+    <section id="lab">
+      <h2>3. Retrieval Practice</h2>
+      <p>Do this from memory first. The point is storage strength, not rereading fluency.</p>
+      <div class="lab" data-quiz>
+        <div class="case">
+          <div class="question">A user asks: "What are the common themes across 10,000 support tickets?"</div>
+          <div class="buttons">
+            <button data-answer="correct">Graph scan</button>
+            <button data-answer="wrong">Vector top</button>
+            <button data-answer="wrong">Prompt ask</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="case">
+          <div class="question">A user asks: "Which clause defines the renewal notice period?"</div>
+          <div class="buttons">
+            <button data-answer="wrong">Graph scan</button>
+            <button data-answer="correct">Vector top</button>
+            <button data-answer="wrong">Prompt ask</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="case">
+          <div class="question">RAG helps most when the model needs access to external, updateable knowledge. What is missing?</div>
+          <div class="buttons">
+            <button data-answer="correct">Fresh facts</button>
+            <button data-answer="wrong">Fast chains</button>
+            <button data-answer="wrong">Small costs</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="case">
+          <div class="question">In practical RAG, source documents are usually split into what retrieval unit?</div>
+          <div class="buttons">
+            <button data-answer="correct">Text chunk</button>
+            <button data-answer="wrong">Full model</button>
+            <button data-answer="wrong">User query</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+      </div>
+      <div class="practice-box">
+        <strong>One-minute architect drill:</strong> Think of a dataset you know well. Write down one local question and one global question for it. If you cannot produce both, ask me and I will help you turn the dataset into a RAG/GraphRAG practice case.
+      </div>
+    </section>
+
+    <section id="next">
+      <h2>4. What To Read Next</h2>
+      <div class="next">
+        <p><strong>Primary source:</strong> read the abstract and introduction of <a href="https://arxiv.org/abs/2404.16130">From Local to Global: A Graph RAG Approach to Query-Focused Summarization</a>.</p>
+        <p><strong>Why this one:</strong> it explains the exact reason GraphRAG exists: baseline RAG can fail when the user asks a global question about an entire corpus.</p>
+        <p><strong>Ask me after reading:</strong> "Test me on local vs global retrieval questions" or "Help me map one of my datasets to RAG vs GraphRAG."</p>
+      </div>
+    </section>
+
+    <footer>
+      Workspace links: <a href="../MISSION.md">Mission</a> | <a href="../RESOURCES.md">Resources</a> | <a href="../reference/0001-rag-vs-graphrag-map.html">Reference Map</a>
+    </footer>
+  </main>
+
+  <script>
+    const explanations = {
+      "Graph scan": "Correct. This is a global corpus question, so community summaries or graph-aware search are plausible.",
+      "Vector top": "Correct. This is local evidence retrieval: find the few chunks that answer the clause question.",
+      "Prompt ask": "Not first. Prompting cannot recover evidence that retrieval failed to supply.",
+      "Fresh facts": "Correct. RAG gives the model access to external knowledge that can be updated outside the weights.",
+      "Fast chains": "Not the main point. RAG can add latency; speed is an engineering tradeoff.",
+      "Small costs": "Not guaranteed. Retrieval, storage, reranking, and longer context can increase cost.",
+      "Graph scan wrong": "Not here. A single clause lookup usually does not need graph construction.",
+      "Vector top wrong": "Not ideal. A theme question is distributed across many records, not one nearby chunk.",
+      "Text chunk": "Correct. Chunks or nodes are the usual atomic retrieval units.",
+      "Full model": "No. The model consumes retrieved context; it is not the indexed unit.",
+      "User query": "No. The query searches the index; it is not the stored source unit."
+    };
+
+    document.querySelectorAll(".case").forEach((caseEl) => {
+      const feedback = caseEl.querySelector(".feedback");
+      caseEl.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          caseEl.querySelectorAll("button").forEach((b) => b.classList.remove("correct", "wrong"));
+          const isCorrect = button.dataset.answer === "correct";
+          button.classList.add(isCorrect ? "correct" : "wrong");
+          const key = button.textContent + (isCorrect ? "" : " wrong");
+          feedback.textContent = explanations[key] || (isCorrect ? "Correct." : "Try again. Classify the question shape first.");
+        });
+      });
+    });
+  </script>
+</body>
+</html>

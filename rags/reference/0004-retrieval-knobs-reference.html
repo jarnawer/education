@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Retrieval Knobs Reference</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #16202a;
+      --muted: #607080;
+      --paper: #fbfaf7;
+      --panel: #ffffff;
+      --line: #d9e1e8;
+      --blue: #2457c5;
+      --teal: #0f766e;
+      --amber: #9a5b00;
+      --warm: #f7efe3;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.52 Georgia, "Times New Roman", serif; }
+    main { max-width: 1080px; margin: 0 auto; padding: 48px 24px 72px; }
+    header { border-bottom: 2px solid var(--ink); margin-bottom: 28px; padding-bottom: 22px; }
+    h1, h2, h3 { margin: 0; line-height: 1.12; }
+    h1 { font-size: clamp(2.2rem, 6vw, 4.4rem); letter-spacing: -0.045em; }
+    h2 { font-size: 1.45rem; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 22px; }
+    h3 { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; }
+    p { margin: 0.75rem 0; }
+    a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #eef1f4; padding: 0.08rem 0.25rem; border-radius: 4px; }
+    .subtitle { max-width: 760px; color: var(--muted); font-size: 1.08rem; }
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: 0 12px 30px rgba(22, 32, 42, 0.06); }
+    .card:nth-child(1) { border-top: 5px solid var(--teal); }
+    .card:nth-child(2) { border-top: 5px solid var(--blue); }
+    .card:nth-child(3) { border-top: 5px solid var(--amber); }
+    table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 0.96rem; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { font-family: ui-sans-serif, system-ui, sans-serif; color: var(--muted); background: #f1f4f7; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    .flow { background: #101820; color: #f7fbff; border-radius: 18px; padding: 18px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; white-space: pre-wrap; }
+    .callout { border-left: 4px solid var(--blue); background: #eef4ff; padding: 14px 16px; margin: 20px 0; }
+    .warning { border-left: 4px solid var(--amber); background: #fff7e8; padding: 14px 16px; margin: 20px 0; }
+    footer { margin-top: 42px; color: var(--muted); font-size: 0.92rem; }
+    @media (max-width: 840px) {
+      main { padding: 28px 16px 56px; }
+      .cards { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: white; }
+      main { padding: 0; }
+      .card, table, .flow { box-shadow: none; break-inside: avoid; }
+      a { color: black; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Retrieval Knobs Reference</h1>
+      <p class="subtitle">A compact diagnostic sheet for online retrieval tuning in baseline RAG. Use it after checking that the corpus is indexed and the chunk grain makes sense.</p>
+    </header>
+
+    <section class="cards" aria-label="Retrieval knobs">
+      <article class="card">
+        <h3>Top-k</h3>
+        <p><strong>Controls candidate budget.</strong> Raise it when the gold chunk exists but falls below the current cutoff. Lower it when enough evidence is found and excess context hurts precision or cost.</p>
+      </article>
+      <article class="card">
+        <h3>Filters</h3>
+        <p><strong>Enforce constraints.</strong> Use metadata or keyword filters for tenant, permission, product, date, language, jurisdiction, source, and version.</p>
+      </article>
+      <article class="card">
+        <h3>Reranking</h3>
+        <p><strong>Prioritizes final context.</strong> Use reranking or score cutoffs when a wider candidate set contains the answer but also includes distracting neighbors.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>Debugging Algorithm</h2>
+      <div class="flow">1. Confirm the answer source was ingested and indexed.
+2. Inspect the gold chunk rank for the failed query.
+3. If the gold rank is outside top_k, raise top_k and measure recall.
+4. If wrong business scope appears, add metadata or keyword filters.
+5. If the answer is present but crowded by weak chunks, rerank or cut by score.
+6. If no online knob isolates the answer, revisit chunk grain.</div>
+      <p class="callout"><strong>Rule:</strong> <code>top_k</code> is a recall budget. It does not mean the returned chunks are all safe, sufficient, or correctly scoped.</p>
+    </section>
+
+    <section>
+      <h2>Symptom Map</h2>
+      <table>
+        <thead>
+          <tr><th>Retrieval Symptom</th><th>First Move</th><th>Measure</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Gold chunk ranked below the cutoff</td><td>Raise <code>top_k</code></td><td>Recall at k; context cost</td></tr>
+          <tr><td>Relevant chunks from wrong tenant, country, product, or date</td><td>Add filters</td><td>Precision; false exclusions</td></tr>
+          <tr><td>Gold chunk appears but weak chunks crowd final context</td><td>Rerank or apply score cutoff</td><td>Precision; answer faithfulness</td></tr>
+          <tr><td>Returned chunk is semantically close but too broad</td><td>Return to chunk design</td><td>Passage-level recall and noise</td></tr>
+          <tr><td>No answer exists in the index</td><td>Fix ingestion or freshness</td><td>Coverage; source recency</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Precision And Recall Lens</h2>
+      <table>
+        <thead>
+          <tr><th>Goal</th><th>Common Tuning Move</th><th>Tradeoff</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Find more possible answers</td><td>Raise <code>top_k</code>, broaden query rewrite, expand candidates</td><td>More noise, latency, and token use</td></tr>
+          <tr><td>Remove impossible answers</td><td>Filter by metadata, permissions, or required keywords</td><td>May remove valid answers if metadata is wrong</td></tr>
+          <tr><td>Improve final evidence quality</td><td>Rerank, cut by score, diversify near-duplicates</td><td>More complexity and another component to evaluate</td></tr>
+        </tbody>
+      </table>
+      <p class="warning"><strong>Senior habit:</strong> record the candidate list before and after every retrieval change. Otherwise you cannot tell whether generation improved because retrieval improved or because the model got lucky.</p>
+    </section>
+
+    <footer>
+      Related lesson: <a href="../lessons/0004-top-k-is-a-candidate-budget.html">Top-k Is a Candidate Budget</a>. Previous reference: <a href="0003-chunk-design-reference.html">Chunk Design Reference</a>. Primary sources: <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/indexing/">LlamaIndex Indexing</a>, <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/querying/">LlamaIndex Querying</a>, and <a href="https://docs.llamaindex.ai/en/stable/optimizing/evaluation/evaluation/">LlamaIndex Evaluation</a>.
+    </footer>
+  </main>
+</body>
+</html>

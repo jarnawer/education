@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RAG vs GraphRAG Decision Map</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #607080;
+      --line: #d9e0e7;
+      --paper: #fbfaf7;
+      --panel: #ffffff;
+      --accent: #2457c5;
+      --graph: #6f3cc3;
+      --rag: #0f766e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 17px/1.55 Georgia, "Times New Roman", serif;
+    }
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 48px 24px 72px;
+    }
+    header {
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 28px;
+      padding-bottom: 22px;
+    }
+    h1, h2, h3 { line-height: 1.12; margin: 0; }
+    h1 { font-size: clamp(2.2rem, 6vw, 4.4rem); letter-spacing: -0.04em; }
+    h2 { font-size: 1.45rem; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 22px; }
+    h3 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+    p { margin: 0.75rem 0; }
+    a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .subtitle { max-width: 740px; color: var(--muted); font-size: 1.08rem; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 12px 32px rgba(23, 33, 43, 0.06);
+    }
+    .rag { border-top: 5px solid var(--rag); }
+    .graph { border-top: 5px solid var(--graph); }
+    .decision {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+      align-items: start;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 0.96rem;
+    }
+    th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+    th { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: #f1f4f7; }
+    tr:last-child td { border-bottom: 0; }
+    .flow {
+      background: #101820;
+      color: #f4f7fb;
+      border-radius: 18px;
+      padding: 18px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+      white-space: pre-wrap;
+    }
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: #eef4ff;
+      padding: 14px 16px;
+      margin: 20px 0;
+    }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    footer { margin-top: 42px; color: var(--muted); font-size: 0.92rem; }
+    @media (max-width: 760px) {
+      main { padding: 28px 16px 56px; }
+      .grid, .decision { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: white; }
+      main { padding: 0; }
+      .card, table, .flow { box-shadow: none; break-inside: avoid; }
+      a { color: black; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>RAG vs GraphRAG Decision Map</h1>
+      <p class="subtitle">A compact reference for choosing the retrieval shape before choosing tools. Use it whenever a stakeholder asks, "Should this be RAG or GraphRAG?"</p>
+    </header>
+
+    <section class="grid" aria-label="RAG and GraphRAG summary cards">
+      <article class="card rag">
+        <h3>Baseline RAG</h3>
+        <p><strong>Best for local questions.</strong> The user asks for facts or passages likely to live in a small number of nearby chunks. The system retrieves top matching chunks, inserts them into context, and asks the LLM to answer.</p>
+        <p>Primary source: <a href="https://arxiv.org/abs/2005.11401">Lewis et al., 2020</a>.</p>
+      </article>
+      <article class="card graph">
+        <h3>GraphRAG</h3>
+        <p><strong>Best for global and relationship-heavy questions.</strong> The user asks for themes, patterns, communities, connections, or sensemaking across a corpus. The system uses an entity graph, communities, and summaries.</p>
+        <p>Primary source: <a href="https://arxiv.org/abs/2404.16130">Edge et al., 2024/2025</a>.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>Core Pipeline Shapes</h2>
+      <div class="decision">
+        <div class="flow">Baseline RAG
+documents - chunks - embeddings - vector index
+query - query embedding - top-k chunks - LLM answer</div>
+        <div class="flow">GraphRAG
+documents - text units - entities + relations - graph
+graph - communities - community summaries
+query - local/global/DRIFT search - LLM answer</div>
+      </div>
+      <p class="callout">Architecture instinct: first classify the question shape. Tool choice comes after that.</p>
+    </section>
+
+    <section>
+      <h2>Decision Table</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Question Shape</th>
+            <th>First Try</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"What does policy X say about refunds?"</td>
+            <td>Baseline or hybrid RAG</td>
+            <td>Likely answer exists in a small set of specific chunks.</td>
+          </tr>
+          <tr>
+            <td>"Which documents mention customer Y and contract Z?"</td>
+            <td>Baseline RAG plus metadata filters</td>
+            <td>Structured filters narrow the search before semantic ranking.</td>
+          </tr>
+          <tr>
+            <td>"What are the main themes in all incident reports?"</td>
+            <td>GraphRAG global search</td>
+            <td>This is corpus-level summarization, not a simple nearest-neighbor lookup.</td>
+          </tr>
+          <tr>
+            <td>"How is supplier A connected to risk B?"</td>
+            <td>GraphRAG local or DRIFT search</td>
+            <td>The answer may require traversing entities, relations, and nearby communities.</td>
+          </tr>
+          <tr>
+            <td>"What changed since yesterday?"</td>
+            <td>Fresh baseline RAG first</td>
+            <td>Graph indexes can be expensive to rebuild; freshness may dominate.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Failure Modes To Remember</h2>
+      <ul>
+        <li><strong>Baseline RAG misses global structure</strong> when the answer is distributed across many chunks.</li>
+        <li><strong>GraphRAG can be overkill</strong> when top-k chunk retrieval answers the question cheaply and accurately.</li>
+        <li><strong>Both fail without evaluation</strong>: measure retrieval quality, groundedness, answer usefulness, latency, and cost.</li>
+      </ul>
+    </section>
+
+    <footer>
+      Related lesson: <a href="../lessons/0001-rag-vs-graphrag-first-decision.html">RAG vs GraphRAG: The First Architecture Decision</a>. Related sources: <a href="https://microsoft.github.io/graphrag/">Microsoft GraphRAG docs</a>, <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">LlamaIndex RAG intro</a>.
+    </footer>
+  </main>
+</body>
+</html>

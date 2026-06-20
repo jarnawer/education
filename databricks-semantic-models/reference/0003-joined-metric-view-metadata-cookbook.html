@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Joined Metric View Metadata Cookbook</title>
+  <style>
+    :root {
+      --ink: #15191f;
+      --muted: #5e6670;
+      --paper: #f7f6f1;
+      --card: #fffefd;
+      --line: #d8d5cc;
+      --soft: #e9edf0;
+      --accent: #2f6f73;
+      --accent-dark: #16464a;
+      --code-bg: #15191f;
+      --code-fg: #f8f5ec;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+      line-height: 1.55;
+    }
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 46px 24px 72px;
+    }
+    header {
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 30px;
+      padding-bottom: 22px;
+    }
+    .eyebrow {
+      color: var(--accent-dark);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(34px, 6vw, 66px);
+      line-height: .95;
+      letter-spacing: -0.05em;
+      margin: 8px 0 12px;
+    }
+    h2 {
+      margin: 36px 0 12px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      font-size: 24px;
+    }
+    h3 { margin: 0 0 8px; font-size: 18px; }
+    p { max-width: 80ch; }
+    a { color: var(--accent-dark); text-underline-offset: 3px; }
+    code {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-size: .9em;
+    }
+    pre {
+      margin: 12px 0 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: var(--code-fg);
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    pre code {
+      background: transparent;
+      border: 0;
+      color: inherit;
+      padding: 0;
+    }
+    .lede { color: var(--muted); font-size: 20px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 16px 0;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .tag {
+      display: inline-block;
+      color: white;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font: 800 12px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin-bottom: 8px;
+    }
+    .table {
+      display: grid;
+      grid-template-columns: 180px 1fr 1fr;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: white;
+      margin-top: 12px;
+    }
+    .table div {
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 13px;
+    }
+    .table div:nth-child(3n) { border-right: 0; }
+    .table div:nth-last-child(-n+3) { border-bottom: 0; }
+    .head {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 900;
+    }
+    .sources { color: var(--muted); font-size: 14px; }
+    @media (max-width: 840px) {
+      .grid, .table { grid-template-columns: 1fr; }
+      .table div { border-right: 0; }
+      .head:nth-child(2), .head:nth-child(3) { display: none; }
+      main { padding: 32px 18px 56px; }
+    }
+    @media print {
+      body { background: white; }
+      main { padding: 20px; }
+      .card, pre, .table { break-inside: avoid; }
+      a { color: var(--ink); }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Reference 0003</div>
+      <h1>Joined Metric View Metadata Cookbook</h1>
+      <p class="lede">A compact pattern for enriching a Databricks Metric View with a customer dimension and AI/BI-friendly semantic metadata.</p>
+    </header>
+
+    <section id="pattern">
+      <h2>The Pattern</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="tag">source</span>
+          <h3><code>samples.tpch.orders</code></h3>
+          <p>The fact-like table that owns the order grain and raw measures.</p>
+        </article>
+        <article class="card">
+          <span class="tag">join</span>
+          <h3><code>samples.tpch.customer</code></h3>
+          <p>A many-to-one dimension lookup reached through <code>o_custkey = c_custkey</code>.</p>
+        </article>
+        <article class="card">
+          <span class="tag">metadata</span>
+          <h3>Display, format, synonyms</h3>
+          <p>Labels for humans, rendering rules for dashboards, and aliases for Genie.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="ddl">
+      <h2>Create The Enriched Metric View</h2>
+      <p>Replace <code>&lt;catalog&gt;.&lt;schema&gt;</code>. Remove <code>rely</code> if you cannot assert the join uniqueness truthfully.</p>
+      <pre><code class="language-sql">CREATE OR REPLACE VIEW &lt;catalog&gt;.&lt;schema&gt;.orders_customer_metric_view
+WITH METRICS
+LANGUAGE YAML
+COMMENT 'TPC-H order KPIs enriched with customer metadata.'
+AS $$
+version: 1.1
+comment: Order metrics with customer segmentation and AI/BI metadata.
+source: samples.tpch.orders
+joins:
+  - name: customer
+    source: samples.tpch.customer
+    on: source.o_custkey = customer.c_custkey
+    rely:
+      at_most_one_match: true
+filter: o_orderdate &gt;= '1995-01-01'
+fields:
+  - name: order_month
+    expr: DATE_TRUNC('MONTH', o_orderdate)
+    comment: Month when the order was placed.
+    display_name: Order Month
+  - name: order_status
+    expr: |
+      CASE o_orderstatus
+        WHEN 'O' THEN 'Open'
+        WHEN 'P' THEN 'Processing'
+        WHEN 'F' THEN 'Fulfilled'
+      END
+    comment: Business label for order status.
+    display_name: Order Status
+    synonyms:
+      - status
+      - fulfillment status
+  - name: customer_name
+    expr: customer.c_name
+    comment: Customer name from the joined customer dimension.
+    display_name: Customer Name
+  - name: market_segment
+    expr: customer.c_mktsegment
+    comment: Customer market segment from the joined customer dimension.
+    display_name: Market Segment
+    synonyms:
+      - segment
+      - industry
+measures:
+  - name: order_count
+    expr: COUNT(DISTINCT o_orderkey)
+    comment: Count of distinct orders.
+    display_name: Order Count
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+      abbreviation: compact
+    synonyms:
+      - orders
+      - number of orders
+  - name: total_revenue
+    expr: SUM(o_totalprice)
+    comment: Sum of order total price.
+    display_name: Total Revenue
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+    synonyms:
+      - revenue
+      - sales
+  - name: unique_customers
+    expr: COUNT(DISTINCT o_custkey)
+    comment: Count of distinct customers.
+    display_name: Unique Customers
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+      abbreviation: compact
+  - name: revenue_per_customer
+    expr: MEASURE(total_revenue) / MEASURE(unique_customers)
+    comment: Revenue divided by unique customers.
+    display_name: Revenue per Customer
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+    synonyms:
+      - customer revenue
+      - revenue per buyer
+$$;</code></pre>
+    </section>
+
+    <section id="queries">
+      <h2>Query Patterns</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Segment breakdown</h3>
+          <pre><code class="language-sql">SELECT
+  market_segment,
+  MEASURE(total_revenue) AS total_revenue,
+  MEASURE(order_count) AS order_count
+FROM &lt;catalog&gt;.&lt;schema&gt;.orders_customer_metric_view
+GROUP BY market_segment
+ORDER BY total_revenue DESC;</code></pre>
+        </article>
+        <article class="card">
+          <h3>Customer leaderboard</h3>
+          <pre><code class="language-sql">SELECT
+  customer_name,
+  MEASURE(total_revenue) AS total_revenue
+FROM &lt;catalog&gt;.&lt;schema&gt;.orders_customer_metric_view
+GROUP BY customer_name
+ORDER BY total_revenue DESC
+LIMIT 20;</code></pre>
+        </article>
+        <article class="card">
+          <h3>Status by segment</h3>
+          <pre><code class="language-sql">SELECT
+  market_segment,
+  order_status,
+  MEASURE(revenue_per_customer) AS revenue_per_customer
+FROM &lt;catalog&gt;.&lt;schema&gt;.orders_customer_metric_view
+GROUP BY market_segment, order_status
+ORDER BY market_segment, order_status;</code></pre>
+        </article>
+      </div>
+    </section>
+
+    <section id="rules">
+      <h2>Rules To Remember</h2>
+      <div class="table" role="table" aria-label="Joined Metric View metadata rules">
+        <div class="head">Concept</div>
+        <div class="head">Rule</div>
+        <div class="head">Example</div>
+        <div>Many-to-one join</div>
+        <div>Default Metric View join cardinality for fact-to-dimension lookup.</div>
+        <div><code>orders -> customer</code></div>
+        <div>Join field</div>
+        <div>Use the join name and dot notation when exposing dimension attributes.</div>
+        <div><code>customer.c_mktsegment</code></div>
+        <div><code>rely</code></div>
+        <div>Optimization assertion. Use only when the at-most-one-match rule truly holds.</div>
+        <div><code>at_most_one_match: true</code></div>
+        <div><code>display_name</code></div>
+        <div>Human-readable label that downstream visualization tools can show.</div>
+        <div><code>Total Revenue</code></div>
+        <div><code>format</code></div>
+        <div>Display rendering rule for number, currency, percentage, byte, date, or datetime values.</div>
+        <div><code>type: currency</code></div>
+        <div><code>synonyms</code></div>
+        <div>Natural-language aliases that help Genie discover the right field or measure.</div>
+        <div><code>sales</code>, <code>segment</code></div>
+      </div>
+    </section>
+
+    <section id="sources">
+      <h2>Sources</h2>
+      <p class="sources">Databricks TPC-H join tutorial: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/tpch-example">Build a complete metric view with joins</a>. Join reference: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/joins">Joins in metric views</a>. Agent metadata reference: <a href="https://docs.databricks.com/aws/en/business-semantics/agent-metadata">Agent metadata in metric views</a>. Modeling guide: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/basic-modeling">Model metric views</a>.</p>
+    </section>
+  </main>
+</body>
+</html>

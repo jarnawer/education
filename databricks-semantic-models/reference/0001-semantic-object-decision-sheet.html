@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Databricks Semantic Objects: Decision Sheet</title>
+  <style>
+    :root {
+      --ink: #1e1b18;
+      --muted: #6c625a;
+      --line: #ded7ce;
+      --paper: #fffdf8;
+      --soft: #f5efe5;
+      --accent: #d84f2a;
+      --accent-dark: #8c2f1b;
+      --code: #332822;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+      line-height: 1.55;
+    }
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 48px 24px 64px;
+    }
+    header {
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 22px;
+      margin-bottom: 32px;
+    }
+    .eyebrow {
+      color: var(--accent-dark);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(34px, 6vw, 64px);
+      line-height: .96;
+      margin: 8px 0 12px;
+      letter-spacing: -0.045em;
+    }
+    h2 {
+      font-size: 22px;
+      margin: 34px 0 10px;
+      border-top: 1px solid var(--line);
+      padding-top: 20px;
+    }
+    p { max-width: 72ch; }
+    a { color: var(--accent-dark); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    code {
+      background: var(--soft);
+      color: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: .92em;
+    }
+    .summary {
+      font-size: 20px;
+      color: var(--muted);
+      max-width: 780px;
+    }
+    .rule {
+      display: grid;
+      grid-template-columns: minmax(160px, .75fr) 1.25fr 1fr;
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 18px 0 28px;
+      background: white;
+    }
+    .rule > div {
+      padding: 16px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      min-height: 92px;
+    }
+    .rule > div:nth-child(3n) { border-right: 0; }
+    .rule > div:nth-last-child(-n+3) { border-bottom: 0; }
+    .head {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 800;
+      min-height: auto !important;
+    }
+    .object {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .tag {
+      display: inline-block;
+      margin-top: 8px;
+      color: white;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: white;
+      padding: 18px;
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+    .flow {
+      counter-reset: step;
+      display: grid;
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .flow p {
+      counter-increment: step;
+      margin: 0;
+      padding: 13px 16px 13px 52px;
+      border-left: 4px solid var(--accent);
+      background: var(--soft);
+      position: relative;
+    }
+    .flow p::before {
+      content: counter(step);
+      position: absolute;
+      left: 16px;
+      top: 13px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+    }
+    .sources {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    @media (max-width: 760px) {
+      .rule { grid-template-columns: 1fr; }
+      .rule > div { border-right: 0; }
+      .head:nth-child(2), .head:nth-child(3) { display: none; }
+      .cards { grid-template-columns: 1fr; }
+      main { padding: 32px 18px 48px; }
+    }
+    @media print {
+      body { background: white; }
+      main { padding: 24px; }
+      a { color: var(--ink); }
+      .card, .rule { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Reference 0001</div>
+      <h1>Databricks Semantic Objects</h1>
+      <p class="summary">A quick decision sheet for choosing between Metric Views, Materialized Views, AI/BI dashboards, dashboard datasets, and standard views.</p>
+    </header>
+
+    <section id="one-line-rule">
+      <h2>One-Line Rule</h2>
+      <p>If you are defining <strong>business meaning</strong>, start with a <strong>Metric View</strong>. If you are solving <strong>physical performance or refresh</strong>, use a <strong>Materialized View</strong>. If you are delivering <strong>interactive consumption</strong>, build a <strong>Dashboard</strong>. If you only need <strong>SQL reuse</strong>, use a <strong>standard view</strong>.</p>
+    </section>
+
+    <section id="matrix">
+      <h2>Decision Matrix</h2>
+      <div class="rule" role="table" aria-label="Semantic object decision matrix">
+        <div class="head">Object</div>
+        <div class="head">Use When</div>
+        <div class="head">Avoid When</div>
+
+        <div><span class="object">Metric View</span><br><span class="tag">semantic logic</span></div>
+        <div>Define governed business metrics once, with fields for grouping/filtering and measures for aggregations. Query measures using <code>MEASURE()</code>. Metric Views are Unity Catalog business semantics.</div>
+        <div>You only need a faster physical table, or your requirement is a one-off chart with no reusable business definition.</div>
+
+        <div><span class="object">Materialized View</span><br><span class="tag">physical cache</span></div>
+        <div>Persist query results for lower latency, recurring expensive transformations, dashboard acceleration, incremental refresh, scheduled refresh, or <code>TRIGGER ON UPDATE</code>.</div>
+        <div>The core problem is KPI consistency or business terminology rather than compute cost or latency.</div>
+
+        <div><span class="object">Metric View Materialization</span><br><span class="tag">semantic acceleration</span></div>
+        <div>Accelerate a Metric View with precomputed materializations and optimizer query rewriting. This is experimental and uses Lakeflow-managed materialized views.</div>
+        <div>You need mature production guarantees without validating experimental feature constraints and fallback behavior.</div>
+
+        <div><span class="object">AI/BI Dashboard</span><br><span class="tag">consumption surface</span></div>
+        <div>Build visual reports, filters, published sharing, scheduled refreshes, embedded consumption, and optional Genie exploration over dashboard datasets.</div>
+        <div>You are tempted to hide canonical KPI definitions inside dashboard-local calculations instead of a reusable Unity Catalog object.</div>
+
+        <div><span class="object">Dashboard Dataset</span><br><span class="tag">dashboard data shape</span></div>
+        <div>Shape the rows/columns a dashboard needs from a table, view, Metric View, or SQL query. Keep sensitive fields out because viewers and Genie can access dataset results.</div>
+        <div>You need a governed metric definition reused outside that dashboard. Export or promote to a Metric View instead.</div>
+
+        <div><span class="object">Standard View</span><br><span class="tag">virtual query</span></div>
+        <div>Encapsulate SQL logic without storing data. Good for projection, light joins, compatibility, and non-semantic reusable query shapes.</div>
+        <div>You need flexible runtime measures, metric metadata, natural-language semantics, or physical performance gains.</div>
+      </div>
+    </section>
+
+    <section id="decision-flow">
+      <h2>Decision Flow</h2>
+      <div class="flow">
+        <p>Ask: “Will multiple people or tools need the same KPI definition?” If yes, model a <strong>Metric View</strong>.</p>
+        <p>Ask: “Is the query expensive, frequently reused, or latency-sensitive?” If yes, add a <strong>Materialized View</strong> or Metric View materialization.</p>
+        <p>Ask: “Is the output a stakeholder-facing report or exploration surface?” If yes, build a <strong>Dashboard</strong> on top.</p>
+        <p>Ask: “Is this only SQL reuse without semantic or performance requirements?” If yes, keep it as a <strong>standard view</strong>.</p>
+        <p>Ask: “Could sensitive rows or columns leak through dashboard datasets or Genie?” If yes, restrict the dataset before publishing.</p>
+      </div>
+    </section>
+
+    <section id="combinations">
+      <h2>Common Combinations</h2>
+      <div class="cards">
+        <article class="card">
+          <h3>Trusted BI Layer</h3>
+          <p><code>Delta table</code> -> <code>Metric View</code> -> <code>Dashboard</code></p>
+          <p>Best when metric consistency matters more than raw speed.</p>
+        </article>
+        <article class="card">
+          <h3>Fast Trusted BI Layer</h3>
+          <p><code>Delta table</code> -> <code>Metric View</code> -> <code>Materialization</code> -> <code>Dashboard</code></p>
+          <p>Best when business metrics are reused and high-traffic dashboard latency matters.</p>
+        </article>
+        <article class="card">
+          <h3>Precomputed Dataset</h3>
+          <p><code>Delta table</code> -> <code>Materialized View</code> -> <code>Dashboard</code></p>
+          <p>Best when the main need is refreshable physical results, not flexible semantic measures.</p>
+        </article>
+        <article class="card">
+          <h3>Light SQL Abstraction</h3>
+          <p><code>Delta table</code> -> <code>Standard View</code> -> <code>SQL or dashboard</code></p>
+          <p>Best when the logic is simple and does not deserve semantic-model ownership.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="sources">
+      <h2>Sources</h2>
+      <p class="sources">Databricks Metric Views overview: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/">docs.databricks.com/aws/en/business-semantics/metric-views</a>. Metric View modeling: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/basic-modeling">basic-modeling</a>. Querying Metric Views: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/query">query</a>. Materialized Views: <a href="https://docs.databricks.com/aws/en/ldp/dbsql/materialized">standalone materialized views</a>. Metric View materialization: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/materialization">materialization</a>. Dashboard datasets: <a href="https://docs.databricks.com/aws/en/dashboards/manage/data-modeling/datasets">dashboard datasets</a>. Dashboard caching: <a href="https://docs.databricks.com/aws/en/dashboards/caching">caching</a>.</p>
+    </section>
+  </main>
+</body>
+</html>

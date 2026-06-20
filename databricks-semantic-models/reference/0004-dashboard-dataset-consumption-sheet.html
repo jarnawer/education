@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard Dataset Consumption Sheet</title>
+  <style>
+    :root {
+      --ink: #171a24;
+      --muted: #646b78;
+      --paper: #fbfaf7;
+      --card: #fffefd;
+      --line: #d8d8df;
+      --soft: #eef0f6;
+      --accent: #5b48d6;
+      --accent-dark: #34268a;
+      --code-bg: #171a24;
+      --code-fg: #fbfaf7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+      line-height: 1.55;
+    }
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 46px 24px 72px;
+    }
+    header {
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 30px;
+      padding-bottom: 22px;
+    }
+    .eyebrow {
+      color: var(--accent-dark);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(34px, 6vw, 66px);
+      line-height: .95;
+      letter-spacing: -0.05em;
+      margin: 8px 0 12px;
+    }
+    h2 {
+      margin: 36px 0 12px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      font-size: 24px;
+    }
+    h3 { margin: 0 0 8px; font-size: 18px; }
+    p { max-width: 80ch; }
+    a { color: var(--accent-dark); text-underline-offset: 3px; }
+    code {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-size: .9em;
+    }
+    pre {
+      margin: 12px 0 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: var(--code-fg);
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    pre code {
+      background: transparent;
+      border: 0;
+      color: inherit;
+      padding: 0;
+    }
+    .lede { color: var(--muted); font-size: 20px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 16px 0;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .tag {
+      display: inline-block;
+      color: white;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font: 800 12px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin-bottom: 8px;
+    }
+    .table {
+      display: grid;
+      grid-template-columns: 170px 1fr 1fr;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: white;
+      margin-top: 12px;
+    }
+    .table div {
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 13px;
+    }
+    .table div:nth-child(3n) { border-right: 0; }
+    .table div:nth-last-child(-n+3) { border-bottom: 0; }
+    .head {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 900;
+    }
+    .sources { color: var(--muted); font-size: 14px; }
+    @media (max-width: 840px) {
+      .grid, .table { grid-template-columns: 1fr; }
+      .table div { border-right: 0; }
+      .head:nth-child(2), .head:nth-child(3) { display: none; }
+      main { padding: 32px 18px 56px; }
+    }
+    @media print {
+      body { background: white; }
+      main { padding: 20px; }
+      .card, pre, .table { break-inside: avoid; }
+      a { color: var(--ink); }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Reference 0004</div>
+      <h1>Dashboard Dataset Consumption Sheet</h1>
+      <p class="lede">A quick decision sheet for consuming governed Metric Views in Databricks AI/BI dashboard datasets.</p>
+    </header>
+
+    <section id="decision">
+      <h2>One-Line Rule</h2>
+      <p>Use a <strong>direct Metric View dataset</strong> when the whole governed model is safe and useful. Use a <strong>SQL dataset over the Metric View</strong> when you must restrict, filter, or reshape. Use a <strong>custom calculation</strong> only for dashboard-scoped logic.</p>
+    </section>
+
+    <section id="options">
+      <h2>Three Options</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="tag">D</span>
+          <h3>Direct Metric View</h3>
+          <p>Best for governed self-service. Dashboards can automatically use dimensions, measures, and agent metadata from the Metric View.</p>
+        </article>
+        <article class="card">
+          <span class="tag">Q</span>
+          <h3>SQL Dataset</h3>
+          <p>Best for safe projection. Explicitly select fields and evaluate measures with <code>MEASURE()</code>.</p>
+        </article>
+        <article class="card">
+          <span class="tag">C</span>
+          <h3>Custom Calculation</h3>
+          <p>Best for dashboard-local calculations that do not deserve Unity Catalog governance.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="safe-query">
+      <h2>Safe SQL Dataset Pattern</h2>
+      <p>Use this when the dashboard should expose only segment-level results. Avoid <code>SELECT *</code>; dashboard viewers and Genie can access dataset results even if fields are not shown in charts.</p>
+      <pre><code class="language-sql">SELECT
+  market_segment,
+  order_status,
+  MEASURE(total_revenue) AS total_revenue,
+  MEASURE(order_count) AS order_count,
+  MEASURE(revenue_per_customer) AS revenue_per_customer
+FROM &lt;catalog&gt;.&lt;schema&gt;.orders_customer_metric_view
+WHERE order_month &gt;= DATE '1997-01-01'
+GROUP BY market_segment, order_status;</code></pre>
+    </section>
+
+    <section id="rules">
+      <h2>Rules To Remember</h2>
+      <div class="table" role="table" aria-label="Dashboard dataset consumption rules">
+        <div class="head">Need</div>
+        <div class="head">Use</div>
+        <div class="head">Why</div>
+        <div>Governed BI surface</div>
+        <div>Direct Metric View dataset</div>
+        <div>Metadata and measures are inherited automatically.</div>
+        <div>Restricted rows or columns</div>
+        <div>SQL dataset over Metric View</div>
+        <div>You control projection, filter, and grouping explicitly.</div>
+        <div>One-dashboard label</div>
+        <div>Custom calculated dimension</div>
+        <div>Keeps local presentation logic out of the governed model.</div>
+        <div>Reusable KPI</div>
+        <div>Metric View measure</div>
+        <div>One definition works across dashboards, SQL, alerts, and Genie.</div>
+        <div>Genie safety</div>
+        <div>Minimized dataset result</div>
+        <div>Genie can answer from full dataset results, not only visible charts.</div>
+      </div>
+    </section>
+
+    <section id="promote">
+      <h2>Promotion Test</h2>
+      <p>Before leaving a calculation in the dashboard, ask: "Would another dashboard, SQL user, alert, or Genie question need this exact meaning?" If yes, move it to the Metric View. If no, keep it as a dashboard custom calculation.</p>
+    </section>
+
+    <section id="sources">
+      <h2>Sources</h2>
+      <p class="sources">Databricks dashboard datasets: <a href="https://docs.databricks.com/aws/en/dashboards/manage/data-modeling/datasets">Create and manage dashboard datasets</a>. Metric View querying: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/query">Query metric views</a>. Custom calculations: <a href="https://docs.databricks.com/aws/en/dashboards/manage/data-modeling/custom-calculations/">What are custom calculations?</a>. Genie Spaces: <a href="https://docs.databricks.com/aws/en/dashboards/genie-spaces">Genie Spaces with dashboards</a>.</p>
+    </section>
+  </main>
+</body>
+</html>

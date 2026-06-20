@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Freshness and Performance Decision Sheet</title>
+  <style>
+    :root {
+      --ink: #17201b;
+      --muted: #5f6c64;
+      --paper: #fbfaf3;
+      --card: #fffefb;
+      --line: #d9d5c8;
+      --soft: #eef2eb;
+      --accent: #237a57;
+      --accent-dark: #164d38;
+      --amber: #b26c14;
+      --code-bg: #17201b;
+      --code-fg: #fbfaf3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+      line-height: 1.55;
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 46px 24px 72px;
+    }
+    header {
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 30px;
+      padding-bottom: 22px;
+    }
+    .eyebrow {
+      color: var(--accent-dark);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(34px, 6vw, 68px);
+      line-height: .95;
+      letter-spacing: -0.055em;
+      margin: 8px 0 12px;
+    }
+    h2 {
+      margin: 36px 0 12px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      font-size: 24px;
+    }
+    h3 { margin: 0 0 8px; font-size: 18px; }
+    p { max-width: 82ch; }
+    a { color: var(--accent-dark); text-underline-offset: 3px; }
+    code {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-size: .9em;
+    }
+    pre {
+      margin: 12px 0 0;
+      padding: 18px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: var(--code-fg);
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    pre code {
+      background: transparent;
+      border: 0;
+      color: inherit;
+      padding: 0;
+    }
+    .lede { color: var(--muted); font-size: 20px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin: 16px 0;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .tag {
+      display: inline-block;
+      color: white;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font: 800 12px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin-bottom: 8px;
+    }
+    .table {
+      display: grid;
+      grid-template-columns: 170px 1fr 1fr;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: white;
+      margin-top: 12px;
+    }
+    .table div {
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 13px;
+    }
+    .table div:nth-child(3n) { border-right: 0; }
+    .table div:nth-last-child(-n+3) { border-bottom: 0; }
+    .head {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 900;
+    }
+    .warn {
+      border-left: 4px solid var(--amber);
+      padding: 10px 0 10px 16px;
+      color: var(--muted);
+    }
+    .sources { color: var(--muted); font-size: 14px; }
+    @media (max-width: 900px) {
+      .grid, .table { grid-template-columns: 1fr; }
+      .table div { border-right: 0; }
+      .head:nth-child(2), .head:nth-child(3) { display: none; }
+      main { padding: 32px 18px 56px; }
+    }
+    @media print {
+      body { background: white; }
+      main { padding: 20px; }
+      .card, pre, .table { break-inside: avoid; }
+      a { color: var(--ink); }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Reference 0005</div>
+      <h1>Freshness and Performance Decision Sheet</h1>
+      <p class="lede">A quick guide for deciding whether a slow or stale AI/BI dashboard needs cache tuning, scheduled refresh, a standalone Materialized View, or Metric View materialization.</p>
+    </header>
+
+    <section id="one-line-rule">
+      <h2>One-Line Rule</h2>
+      <p>Start with the dashboard layer when the issue is initial load or repeated viewer traffic. Move to physical materialization when the dataset query itself is expensive or must have predictable latency.</p>
+    </section>
+
+    <section id="four-levers">
+      <h2>Four Levers</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="tag">C</span>
+          <h3>Dashboard Cache</h3>
+          <p>Databricks dashboards maintain a best-effort 24-hour result cache. It can return stale dashboard results for speed.</p>
+        </article>
+        <article class="card">
+          <span class="tag">S</span>
+          <h3>Dashboard Schedule</h3>
+          <p>Schedules run dashboard dataset SQL ahead of viewers and populate cache, especially useful for published dashboards with shared permissions.</p>
+        </article>
+        <article class="card">
+          <span class="tag">M</span>
+          <h3>Standalone MV</h3>
+          <p>Materialized Views physically store a query result and refresh on a schedule, trigger, or manual command using serverless pipelines.</p>
+        </article>
+        <article class="card">
+          <span class="tag">V</span>
+          <h3>Metric View Materialization</h3>
+          <p>Metric View materialization is experimental and uses aggregate-aware rewrite to route eligible Metric View queries to precomputed results.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="decision-table">
+      <h2>Decision Table</h2>
+      <div class="table" role="table" aria-label="Freshness and performance choices">
+        <div class="head">Symptom</div>
+        <div class="head">First move</div>
+        <div class="head">Why</div>
+        <div>Slow first load for many viewers</div>
+        <div>Schedule the dashboard</div>
+        <div>Runs all dataset SQL ahead of time and helps populate cache.</div>
+        <div>Filter changes rerun backend queries</div>
+        <div>Reduce dataset result size</div>
+        <div>Dashboard filtering is browser-side only for datasets up to 100K rows and 100MB.</div>
+        <div>Dataset SQL is inherently expensive</div>
+        <div>Create a standalone MV</div>
+        <div>Precomputes the transformation or aggregate before dashboard users arrive.</div>
+        <div>Metric View queries repeat the same groups</div>
+        <div>Add Metric View materialization</div>
+        <div>Lets the optimizer rewrite eligible queries to aggregated or unaggregated materializations.</div>
+        <div>Need guaranteed no stale dashboard result</div>
+        <div>Do not rely on dashboard cache</div>
+        <div>Dashboard cache can return stale results for up to 24 hours.</div>
+      </div>
+    </section>
+
+    <section id="snippets">
+      <h2>Snippets</h2>
+      <p>Standalone Materialized View with predictable refresh:</p>
+      <pre><code class="language-sql">CREATE OR REPLACE MATERIALIZED VIEW sales_daily_mv
+  SCHEDULE EVERY 1 DAY
+AS SELECT
+  date_trunc('day', order_time) AS sales_date,
+  market_segment,
+  sum(revenue) AS total_revenue,
+  count(*) AS order_count
+FROM prod.sales.orders
+GROUP BY sales_date, market_segment;</code></pre>
+
+      <p>Metric View materialization pattern:</p>
+      <pre><code class="language-yaml">materialization:
+  schedule: every 6 hours
+  mode: relaxed
+  materialized_views:
+    - name: revenue_by_segment
+      type: aggregated
+      dimensions:
+        - market_segment
+        - order_month
+      measures:
+        - total_revenue
+        - order_count</code></pre>
+    </section>
+
+    <section id="pitfalls">
+      <h2>Pitfalls</h2>
+      <p class="warn">Do not confuse cache freshness with source freshness. A refreshed upstream table can still be hidden behind a dashboard cache result, while the generic query result cache is invalidated when underlying data changes.</p>
+      <p class="warn">Do not materialize first. Inspect query history, dataset row count, dataset bytes, and repeated grouping/filter patterns before adding serverless refresh cost.</p>
+      <p class="warn">Metric View materialization is experimental. Verify with <code>EXPLAIN EXTENDED</code> or query profile before assuming query rewrite is active.</p>
+    </section>
+
+    <section id="sources">
+      <h2>Sources</h2>
+      <p class="sources">Databricks dashboard caching: <a href="https://docs.databricks.com/aws/en/dashboards/caching">Dataset optimization and caching</a>. Metric View materialization: <a href="https://docs.databricks.com/aws/en/business-semantics/metric-views/materialization">Materialization for metric views</a>. Standalone Materialized Views: <a href="https://docs.databricks.com/aws/en/ldp/dbsql/materialized">Use standalone materialized views</a>. SQL syntax: <a href="https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-syntax-ddl-create-materialized-view">CREATE MATERIALIZED VIEW</a>.</p>
+    </section>
+  </main>
+</body>
+</html>
